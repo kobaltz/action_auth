@@ -8,6 +8,13 @@ Add this line to your application's Gemfile:
 bundle add action_auth
 bin/rails action_auth:install:migrations
 ```
+
+Modify config/routes.rb to include the following:
+
+```ruby
+mount ActionAuth::Engine => 'action_auth'
+```
+
 ## Usage
 
 ### Routes
