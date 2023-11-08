@@ -1,0 +1,42 @@
+<h1>Welcome#index</h1>
+
+<p><strong>current_session:</strong> <%= current_session.inspect %></p>
+<p><strong>current_user:</strong> <%= current_user.inspect %></p>
+<p><strong>user_signed_in?:</strong> <%= user_signed_in? %></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Method</th>
+      <th>Verb</th>
+      <th>params</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>user_sessions_path</strong></td>
+      <td>GET</td>
+      <td></td>
+      <td>Device session management</td>
+    </tr>
+    <tr>
+      <td><strong>user_session_path</strong></td>
+      <td>DELETE</td>
+      <td>[:id]</td>
+      <td>Log Out</td>
+    </tr>
+    <tr>
+      <td><strong>new_user_session_path</strong></td>
+      <td>GET</td>
+      <td></td>
+      <td>Log in</td>
+    </tr>
+    <tr>
+      <td><strong>new_user_registration_path</strong></td>
+      <td>GET</td>
+      <td></td>
+      <td>Sign Up</td>
+    </tr>
+  </tbody>
+</table>
