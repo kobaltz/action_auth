@@ -56,3 +56,9 @@ Within your application, you'll have access to these routes. They have been styl
 
 ## License
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+
+
+## Credits
+
+Heavily inspired by [Drifting Ruby #300](https://www.driftingruby.com/episodes/authentication-from-scratch)
+and [Authentication Zero](https://github.com/lazaronixon/authentication-zero).
