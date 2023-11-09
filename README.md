@@ -1,9 +1,9 @@
 # ActionAuth
-ActionAuth is a Rails engine that provides a simple authentication system for your Rails application.
-It uses the latest methods for authentication and handling reset tokens from Rails 7.1.0.
-It is designed to be simple and easy to use and allows you to focus on building your application.
-The functionality of this gem relies on ActiveSupport::CurrentAttributes the methods are
-designed to have a similar experience as Devise.
+ActionAuth is an authentication Rails engine crafted to integrate seamlessly
+with your Rails application. Optimized for Rails 7.1.0, it employs the most modern authentication
+techniques and streamlined token reset processes. Its simplicity and ease of use let you concentrate
+on developing your application, while its reliance on ActiveSupport::CurrentAttributes ensures a
+user experience akin to that offered by the well-regarded Devise gem.
 
 ## Installation
 Add this line to your application's Gemfile:
