@@ -33,6 +33,36 @@ In your view layout
 <% end %>
 ```
 
+## Features
+
+These are the planned features for ActionAuth. The ones that are checked off are currently implemented. The ones that are not checked off are planned for future releases.
+
+✅ - Sign Up, Sign In, Sign Out
+
+✅ - Password reset
+
+✅ - Account Email Verification
+
+✅ - Cookie-based sessions
+
+⏳ - Multifactor Authentication
+
+⏳ - Passkeys/Hardware Security Keys
+
+⏳ - Magic Links
+
+⏳ - OAuth with Google, Facebook, Github, Twitter, etc.
+
+⏳ - Account Deletion
+
+⏳ - Account Lockout
+
+⏳ - Account Suspension
+
+⏳ - Account Impersonation
+
+
+
 ## Usage
 
 ### Routes
