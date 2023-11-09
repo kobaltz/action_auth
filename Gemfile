@@ -8,6 +8,10 @@ gem "puma"
 gem "sqlite3"
 gem "sprockets-rails"
 
+group :development do
+  gem "letter_opener"
+end
+
 group :test do
   gem 'simplecov', require: false
 end

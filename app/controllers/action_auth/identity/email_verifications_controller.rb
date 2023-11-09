@@ -9,7 +9,8 @@ module ActionAuth
       end
 
       def create
-        send_email_verification
+        user = ActionAuth::User.find_by(email: params[:email])
+        UserMailer.with(user: user).email_verification.deliver_later if user
         redirect_to main_app.root_path, notice: "We sent a verification email to your email address"
       end
 
@@ -21,10 +22,6 @@ module ActionAuth
         redirect_to edit_identity_email_path, alert: "That email verification link is invalid"
       end
 
-      def send_email_verification
-        return unless Current.user
-        UserMailer.with(user: Current.user).email_verification.deliver_later
-      end
     end
   end
 end

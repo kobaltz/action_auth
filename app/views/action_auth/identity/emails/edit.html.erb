@@ -3,16 +3,20 @@
   <% header_text = "Change Your Email" %>
   <% label_text = "New email" %>
   <% button_text = "Save changes" %>
+  <% form_url = identity_email_path %>
+  <% form_method = :patch %>
 <% else %>
   <% header_text = "Verify Your Email" %>
   <% label_text = "Email" %>
   <% button_text = "Send verification email" %>
+  <% form_url = identity_email_verification_path %>
+  <% form_method = :post %>
 <% end %>
 <h1><%= header_text %></h1>
 
 <p style="color: red"><%= alert %></p>
 
-<%= form_with(url: identity_email_path, method: :patch) do |form| %>
+<%= form_with(url: form_url, method: form_method) do |form| %>
   <% if @user&.errors&.any? %>
     <div style="color: red">
       <h2><%= pluralize(@user.errors.count, "error") %> prohibited this user from being saved:</h2>

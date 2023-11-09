@@ -81,6 +81,8 @@ GEM
       minitest (>= 5.1)
       mutex_m
       tzinfo (~> 2.0)
+    addressable (2.8.5)
+      public_suffix (>= 2.0.2, < 6.0)
     base64 (0.2.0)
     bcrypt (3.1.19)
     bigdecimal (3.1.4)
@@ -101,6 +103,10 @@ GEM
     irb (1.8.3)
       rdoc
       reline (>= 0.3.8)
+    launchy (2.5.2)
+      addressable (~> 2.8)
+    letter_opener (1.8.1)
+      launchy (>= 2.2, < 3)
     loofah (2.21.4)
       crass (~> 1.0.2)
       nokogiri (>= 1.12.0)
@@ -129,6 +135,7 @@ GEM
       racc (~> 1.4)
     psych (5.1.1.1)
       stringio
+    public_suffix (5.0.3)
     puma (6.4.0)
       nio4r (~> 2.0)
     racc (1.7.3)
@@ -207,6 +214,7 @@ PLATFORMS
 
 DEPENDENCIES
   action_auth!
+  letter_opener
   puma
   simplecov
   sprockets-rails
