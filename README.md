@@ -5,6 +5,8 @@ techniques and streamlined token reset processes. Its simplicity and ease of use
 on developing your application, while its reliance on ActiveSupport::CurrentAttributes ensures a
 user experience akin to that offered by the well-regarded Devise gem.
 
+[![Ruby](https://github.com/kobaltz/action_auth/actions/workflows/test.yml/badge.svg)](https://github.com/kobaltz/action_auth/actions/workflows/test.yml)
+
 ## Installation
 Add this line to your application's Gemfile:
 
