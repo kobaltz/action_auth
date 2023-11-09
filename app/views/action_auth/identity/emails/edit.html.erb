@@ -1,5 +1,5 @@
 
-<% if user_signed_in? && Current.user.verified? %>
+<% if user_signed_in? && ActionAuth::Current.user.verified? %>
   <% header_text = "Change Your Email" %>
   <% label_text = "New email" %>
   <% button_text = "Save changes" %>
@@ -30,7 +30,7 @@
   </div>
 
   <div class="mb-3">
-    <% if user_signed_in? && Current.user.verified? %>
+    <% if user_signed_in? && ActionAuth::Current.user.verified? %>
       <%= form.submit button_text, class: "btn btn-primary" %>
     <% else %>
       <%= button_to button_text, identity_email_verification_path, class: "btn btn-primary" %>
