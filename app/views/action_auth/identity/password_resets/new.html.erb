@@ -1,14 +1,19 @@
+<h1>Forgot your password?</h1>
 <p style="color: red"><%= alert %></p>
 
-<h1>Forgot your password?</h1>
-
 <%= form_with(url: identity_password_reset_path) do |form| %>
-  <div>
+  <div class="mb-3">
     <%= form.label :email, style: "display: block" %>
     <%= form.email_field :email, required: true, autofocus: true %>
   </div>
 
-  <div>
-    <%= form.submit "Send password reset email" %>
+  <div class="mb-3">
+    <%= form.submit "Send password reset email", class: "btn btn-primary" %>
   </div>
 <% end %>
+
+<div class="mb-3">
+  <%= link_to "Sign In", sign_in_path %> |
+  <%= link_to "Sign Up", sign_up_path %> |
+  <%= link_to "Verify Email", identity_email_verification_path %>
+</div>

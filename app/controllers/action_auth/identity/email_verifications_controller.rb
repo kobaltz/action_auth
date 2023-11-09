@@ -22,6 +22,7 @@ module ActionAuth
       end
 
       def send_email_verification
+        return unless Current.user
         UserMailer.with(user: Current.user).email_verification.deliver_later
       end
     end
