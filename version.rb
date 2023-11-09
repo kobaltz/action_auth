@@ -1,0 +1,1 @@
+lib/action_auth/version.rb
