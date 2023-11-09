@@ -89,6 +89,7 @@ GEM
     connection_pool (2.4.1)
     crass (1.0.6)
     date (3.3.4)
+    docile (1.4.0)
     drb (2.2.0)
       ruby2_keywords
     erubi (1.12.0)
@@ -174,6 +175,12 @@ GEM
     reline (0.3.9)
       io-console (~> 0.5)
     ruby2_keywords (0.0.5)
+    simplecov (0.22.0)
+      docile (~> 1.1)
+      simplecov-html (~> 0.11)
+      simplecov_json_formatter (~> 0.1)
+    simplecov-html (0.12.3)
+    simplecov_json_formatter (0.1.4)
     sprockets (4.2.1)
       concurrent-ruby (~> 1.0)
       rack (>= 2.2.4, < 4)
@@ -201,6 +208,7 @@ PLATFORMS
 DEPENDENCIES
   action_auth!
   puma
+  simplecov
   sprockets-rails
   sqlite3
 

@@ -7,7 +7,7 @@ module ActionAuth
 
     def update
       if @user.update(user_params)
-        redirect_to root_path, notice: "Your password has been changed"
+        redirect_to main_app.root_path, notice: "Your password has been changed"
       else
         render :edit, status: :unprocessable_entity
       end

@@ -1,7 +1,8 @@
-require "test_helper"
+require 'test_helper'
 
-class ActionAuthTest < ActiveSupport::TestCase
-  test "it has a version number" do
-    assert ActionAuth::VERSION
+# Test Engine isolation
+class EngineIsolationTest < ActiveSupport::TestCase
+  test "engine is isolated" do
+    assert ActionAuth::Engine.isolated?
   end
 end

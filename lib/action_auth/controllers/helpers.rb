@@ -14,7 +14,6 @@ module ActionAuth
 
         def user_signed_in?; Current.user.present?; end
         helper_method :user_signed_in?
-
       end
 
       private

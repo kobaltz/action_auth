@@ -7,7 +7,7 @@ module ActionAuth
     def create
       @user = User.new(user_params)
 
-      if @user.save!
+      if @user.save
         session_record = @user.action_auth_sessions.create!
         cookies.signed.permanent[:session_token] = { value: session_record.id, httponly: true }
 

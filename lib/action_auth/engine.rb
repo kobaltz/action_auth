@@ -14,6 +14,7 @@ module ActionAuth
       ActiveSupport.on_load :action_controller_base do
         helper_method :user_sessions_path, :user_session_path, :new_user_session_path
         helper_method :new_user_registration_path
+        helper_method :edit_user_password_path
       end
     end
   end

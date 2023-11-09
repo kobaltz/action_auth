@@ -9,10 +9,7 @@ module ActionAuth
     end
 
     test "should get index" do
-      session = @user.action_auth_sessions.create
-      signed_cookies = ActionDispatch::Request.new(Rails.application.env_config.deep_dup).cookie_jar
-      signed_cookies.signed[:session_token] = { value: session.id, httponly: true }
-      cookies[:session_token] = signed_cookies[:session_token]
+      sign_in_as(@user)
       get sessions_url
       assert_response :success
     end
@@ -35,10 +32,7 @@ module ActionAuth
     end
 
     test "should sign out" do
-      session = @user.action_auth_sessions.create
-      signed_cookies = ActionDispatch::Request.new(Rails.application.env_config.deep_dup).cookie_jar
-      signed_cookies.signed[:session_token] = { value: session.id, httponly: true }
-      cookies[:session_token] = signed_cookies[:session_token]
+      sign_in_as(@user)
 
       delete session_url(@user.action_auth_sessions.last)
       assert_response :redirect
