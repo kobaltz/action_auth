@@ -71,11 +71,11 @@ Within your application, you'll have access to these routes. They have been styl
 
     Method											Verb		Params	Description
     user_sessions_path					GET							Device session management
-    user_session_path						DELETE	[:id]		Log Out
-    new_user_session_path				GET							Log in
+    user_session_path		DELETE	[:id]		Log Out
+    new_user_session_path		GET							Log in
     new_user_registration_path	GET							Sign Up
-    edit_password_path					GET							Change Password
-    password_path								PATCH						Update Password
+    edit_password_path		GET							Change Password
+    password_path			PATCH						Update Password
 
 ### Helper Methods
 
