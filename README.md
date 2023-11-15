@@ -117,7 +117,7 @@ versus a user that is not logged in.
     class AuthenticatedConstraint
       def self.matches?(request)
         session_token = request.cookie_jar.signed[:session_token]
-        session_token.present?
+        ActionAuth::Session.exists?(session_token)
       end
     end
 
