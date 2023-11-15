@@ -69,20 +69,64 @@ These are the planned features for ActionAuth. The ones that are checked off are
 
 Within your application, you'll have access to these routes. They have been styled to be consistent with Devise.
 
-    Method	                    Verb	  Params	Description
-    user_sessions_path	        GET		            Device session management
-    user_session_path	        DELETE	  [:id]     Log Out
-    new_user_session_path	    GET		            Log in
-    new_user_registration_path	GET		            Sign Up
-    edit_password_path          GET		            Change Password
-    password_path               PATCH               Update Password
+    Method											Verb		Params	Description
+    user_sessions_path					GET							Device session management
+    user_session_path						DELETE	[:id]		Log Out
+    new_user_session_path				GET							Log in
+    new_user_registration_path	GET							Sign Up
+    edit_password_path					GET							Change Password
+    password_path								PATCH						Update Password
 
 ### Helper Methods
 
-    Method	                    Description
-    current_user	            Returns the currently logged in user
-    user_signed_in?	            Returns true if the user is logged in
-    current_session	            Returns the current session
+    Method											Description
+    current_user								Returns the currently logged in user
+    user_signed_in?							Returns true if the user is logged in
+    current_session							Returns the current session
+
+### Restricting and Changing Routes with Constraints
+
+Sometimes, there could be some routes that you would want to prevent access to unless the
+user is an admin. These routes could be for managing users, or other sensitive data. You
+can create a constraint to restrict access to these routes.
+
+    # app/constraints/admin_constraint.rb
+
+    class AdminConstraint
+      def self.matches?(request)
+        user = current_user(request)
+        user && user.admin?
+      end
+
+      def self.current_user(request)
+        session_token = request.cookie_jar.signed[:session_token]
+        ActionAuth::Session.find_by(id: session_token)&.action_auth_user
+      end
+    end
+
+    # config/routes.rb
+
+    constraints AdminConstraint do
+      mount GoodJob::Engine => 'good_job'
+    end
+
+Other times, you may want to have a different kind of view for a user that is logged in
+versus a user that is not logged in.
+
+    # app/constraints/authenticated_constraint.rb
+    class AuthenticatedConstraint
+      def self.matches?(request)
+        session_token = request.cookie_jar.signed[:session_token]
+        session_token.present?
+      end
+    end
+
+    # config/routes.rb
+    constraints AuthenticatedConstraint do
+      root to: 'dashboard#index'
+    end
+    root to: 'welcome#index'
+
 
 ## License
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
