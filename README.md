@@ -79,7 +79,7 @@ Within your application, you'll have access to these routes. They have been styl
 
 ### Helper Methods
 
-    Method		Description
+    Method			Description
     current_user		Returns the currently logged in user
     user_signed_in?		Returns true if the user is logged in
     current_session		Returns the current session
