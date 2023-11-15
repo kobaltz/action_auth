@@ -69,8 +69,8 @@ These are the planned features for ActionAuth. The ones that are checked off are
 
 Within your application, you'll have access to these routes. They have been styled to be consistent with Devise.
 
-    Method											Verb		Params	Description
-    user_sessions_path					GET							Device session management
+    Method				Verb		Params	Description
+    user_sessions_path		GET							Device session management
     user_session_path		DELETE	[:id]		Log Out
     new_user_session_path		GET							Log in
     new_user_registration_path	GET							Sign Up
