@@ -3,27 +3,25 @@
 <h1>Devices & Sessions</h1>
 
 <div id="sessions">
-  <% @sessions.each do |session| %>
-    <div id="<%= dom_id session %>">
-      <p>
-        <strong>User Agent:</strong>
-        <%= session.user_agent %>
-      </p>
-
-      <p>
-        <strong>Ip Address:</strong>
-        <%= session.ip_address %>
-      </p>
-
-      <p>
-        <strong>Created at:</strong>
-        <%= session.created_at %>
-      </p>
-
-    </div>
-    <p>
-      <%= button_to "Log out", session, method: :delete %>
-    </p>
-  <% end %>
+  <table class="action-auth--table">
+    <thead>
+      <tr>
+        <th>User Agent</th>
+        <th nowrap>Ip Address</th>
+        <th nowrap>Created at</th>
+        <th nowrap></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @sessions.each do |session| %>
+        <%= content_tag :tr, id: dom_id(session) do %>
+          <td><%= session.user_agent %></td>
+          <td nowrap><%= session.ip_address %></td>
+          <td nowrap><%= session.created_at %></td>
+          <td nowrap><%= button_to "Log out", session, method: :delete, class: "btn btn-primary" %></td>
+        <% end %>
+      <% end %>
+    </tbody>
+  </table>
 </div>
 

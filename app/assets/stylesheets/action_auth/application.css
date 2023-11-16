@@ -29,6 +29,21 @@ body {
   background-color: rgb(255, 255, 255) !important;
 }
 
+.container-fluid {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  box-sizing: border-box;
+  width: 100%;
+  padding-right: 12px;
+  padding-left: 12px;
+  margin-right: auto;
+  margin-left: auto;
+  max-width: 1140px;
+  border: solid 1px rgb(222, 226, 230) !important;
+  padding-bottom: 1rem !important;
+  background-color: rgb(255, 255, 255) !important;
+}
+
 input[type="text"],
 input[type="email"],
 input[type="password"] {
@@ -98,4 +113,44 @@ input[type="password"] {
   color: #fff;
   background-color: #007bff;
   border-color: #007bff;
+}
+
+.action-auth--table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  font-family: 'Arial', sans-serif;
+  overflow: hidden;
+  margin: 20px 0;
+}
+
+.action-auth--table thead {
+  background-color: #007BFF;
+  color: #ffffff;
+}
+
+.action-auth--table th,
+.action-auth--table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #dddddd;
+}
+
+.action-auth--table tr:last-child {
+  border-bottom: none;
+}
+
+.action-auth--table th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.action-auth--table tbody tr:hover {
+  background-color: #f1f1f1;
+}
+
+.action-auth--table td {
+  transition: background-color 0.3s;
 }

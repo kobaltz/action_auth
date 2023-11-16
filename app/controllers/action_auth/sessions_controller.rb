@@ -1,7 +1,7 @@
 module ActionAuth
   class SessionsController < ApplicationController
     before_action :set_current_request_details
-
+    layout "action_auth/application-full-width", only: :index
     def index
       @sessions = Current.user.action_auth_sessions.order(created_at: :desc)
     end
