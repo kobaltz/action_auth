@@ -1,3 +1,9 @@
-User#email_verification
+Hey there,
 
-<%= @greeting %>, find me in app/views/action_auth/user_mailer/email_verification.text.erb
+This is to confirm that <%= @user.email %> is the email you
+want to use on your account. If you ever lose your password,
+that's where we'll email a reset link.
+
+You must click the link below to confirm that you received this email.
+
+<%= identity_email_verification_url(sid: @signed_id) %>
