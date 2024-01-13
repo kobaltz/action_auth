@@ -67,7 +67,6 @@ Stimulus.register(
   class extends Controller {
     static values = { options: Object }
     connect() {
-      console.log(this.optionsValue);
       if (this.hasOptionsValue) {
         Credential.get(this.optionsValue);
       }
