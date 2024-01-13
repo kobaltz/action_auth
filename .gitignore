@@ -10,3 +10,4 @@
 /test/dummy/tmp/
 action_auth-*.gem
 coverage/
+release.sh

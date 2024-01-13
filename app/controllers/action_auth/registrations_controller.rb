@@ -8,11 +8,15 @@ module ActionAuth
       @user = User.new(user_params)
 
       if @user.save
-        session_record = @user.action_auth_sessions.create!
-        cookies.signed.permanent[:session_token] = { value: session_record.id, httponly: true }
+        if ActionAuth.configuration.verify_email_on_sign_in
+          send_email_verification
+          redirect_to main_app.root_path, notice: "Welcome! You have signed up successfully. Please check your email to verify your account."
+        else
+          session_record = @user.action_auth_sessions.create!
+          cookies.signed.permanent[:session_token] = { value: session_record.id, httponly: true }
 
-        send_email_verification
-        redirect_to main_app.root_path, notice: "Welcome! You have signed up successfully"
+          redirect_to main_app.root_path, notice: "Welcome! You have signed up successfully"
+        end
       else
         render :new, status: :unprocessable_entity
       end

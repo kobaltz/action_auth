@@ -33,7 +33,18 @@ In your view layout
 <% end %>
 ```
 
-See [WebAuthn](#webauthn) for additional configuration.
+See [WebAuthn](#webauthn) for additional configuration steps if you want to enable WebAuthn.
+In your `config/initializers/action_auth.rb` file, you can add the following configuration
+settings.
+
+```ruby
+ActionAuth.configure do |config|
+  config.webauthn_enabled = true
+  config.webauthn_origin = "http://localhost:3000" # or "https://example.com"
+  config.webauthn_rp_name = Rails.application.class.to_s.deconstantize
+  config.verify_email_on_sign_in = true
+end
+```
 
 ## Features
 
@@ -164,6 +175,7 @@ ActionAuth.configure do |config|
   config.webauthn_enabled = true
   config.webauthn_origin = "http://localhost:3000" # or "https://example.com"
   config.webauthn_rp_name = Rails.application.class.to_s.deconstantize
+  config.verify_email_on_sign_in = true
 end
 ```
 
