@@ -14,6 +14,12 @@ module ActionAuth
 
         def user_signed_in?; Current.user.present?; end
         helper_method :user_signed_in?
+
+        def authenticate_user!
+          return if user_signed_in?
+          redirect_to new_user_session_path
+        end
+        helper_method :authenticate_user!
       end
 
       private

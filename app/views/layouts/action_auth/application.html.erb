@@ -5,6 +5,7 @@
   <%= csrf_meta_tags %>
   <%= csp_meta_tag %>
   <%= stylesheet_link_tag "action_auth/application", media: "all" %>
+  <%= javascript_include_tag "action_auth/application", "data-turbo-track": "reload", type: "module" %>
 </head>
 <body class="bg-light">
   <div class="container bg-white border pb-3">

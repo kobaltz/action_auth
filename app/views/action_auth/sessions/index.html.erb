@@ -5,6 +5,7 @@
 </h1>
 <small><%= link_to "back to app", main_app.root_path %></small>
 
+<h2>Sessions</h2>
 <div id="sessions">
   <table class="action-auth--table">
     <thead>
@@ -28,3 +29,38 @@
   </table>
 </div>
 
+<% if ActionAuth.configuration.webauthn_enabled? %>
+  <% if current_user.second_factor_enabled? %>
+    <h3>Your Security Keys:</h3>
+    <table class="action-auth--table">
+      <thead>
+        <tr>
+          <th>Key</th>
+          <th nowrap>Registered On</th>
+          <th nowrap></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% current_user.action_auth_webauthn_credentials.each do |credential| %>
+          <%= content_tag :tr, id: dom_id(credential) do %>
+            <td><%= credential.nickname %></td>
+            <td nowrap><%= credential.created_at.strftime('%B %d, %Y') %></td>
+            <td nowrap><%= button_to "Delete", credential, method: :delete, class: "btn btn-primary" %></td>
+          <% end %>
+        <% end %>
+      </tbody>
+    </table>
+
+    <div>
+      <%= button_to("Register new Security Key",
+                    new_webauthn_credential_path,
+                    method: :get,
+                    class: "btn btn-primary") %>
+    </div>
+  <% else %>
+    <h2>Enable Two-Factor Authentication</h2>
+    <div class="">
+      <%= link_to "Add a passkey", new_webauthn_credential_path, class: "btn btn-primary" %>
+    </div>
+  <% end %>
+<% end %>

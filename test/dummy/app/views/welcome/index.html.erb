@@ -1,9 +1,14 @@
 <h1>Welcome#index</h1>
 
+<h2>Session Information</h2>
 <p><strong>current_session:</strong> <%= current_session.inspect %></p>
 <p><strong>current_user:</strong> <%= current_user.inspect %></p>
 <p><strong>user_signed_in?:</strong> <%= user_signed_in? %></p>
 
+<h2>ActionAuth Configuration</h2>
+WebAuthn Enabled: <%= ActionAuth.configuration.webauthn_enabled? %>
+
+<h2>Routes</h2>
 <table>
   <thead>
     <tr>

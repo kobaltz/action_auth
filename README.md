@@ -15,7 +15,7 @@ bundle add action_auth
 bin/rails action_auth:install:migrations
 ```
 
-Modify config/routes.rb to include the following:
+Modify config/routes.rb to include the following (note that the path can be anything you want):
 
 ```ruby
 mount ActionAuth::Engine => 'action_auth'
@@ -25,13 +25,15 @@ In your view layout
 
 ```ruby
 <% if user_signed_in? %>
-  <li><%= link_to "Sessions", user_sessions_path %></li>
+  <li><%= link_to "Security", user_sessions_path %></li>
   <li><%= button_to "Sign Out", user_session_path(current_session), method: :delete %></li>
 <% else %>
   <li><%= link_to "Sign In", new_user_session_path %></li>
   <li><%= link_to "Sign Up", new_user_registration_path %></li>
 <% end %>
 ```
+
+See [WebAuthn](#webauthn) for additional configuration.
 
 ## Features
 
@@ -45,9 +47,11 @@ These are the planned features for ActionAuth. The ones that are checked off are
 
 ✅ - Cookie-based sessions
 
-⏳ - Multifactor Authentication
+✅ - Device Session Management
 
-⏳ - Passkeys/Hardware Security Keys
+✅ - Multifactor Authentication (through Passkeys)
+
+✅ - Passkeys/Hardware Security Keys
 
 ⏳ - Magic Links
 
@@ -127,6 +131,41 @@ versus a user that is not logged in.
     end
     root to: 'welcome#index'
 
+## WebAuthn
+
+ActionAuth's approach for WebAuthn is simplicity. It is used as a multifactor authentication step,
+so users will still need to register their email address and password. Once the user is registered,
+they can add a Passkey to their account. The Passkey could be an iCloud Keychain, a hardware security
+key like a Yubikey, or a mobile device. If enabled and configured, the user will be prompted to use
+their Passkey after they log in.
+
+### Configuration
+
+The migrations are already copied over to your application when you run
+`bin/rails action_auth:install:migrations`. There are only two steps that you have to take to enable
+WebAuthn for your application.
+
+The reason why you need to add the gem is because it's not added to the gemspec of ActionAuth. This is
+intentional as not all users will want to add this functionality. This will help minimize
+the number of gems that your application relies on unless if they are features that you want to use.
+
+#### Add the gem
+
+```
+bundle add webauthn
+```
+
+### Configure the WebAuthn settings
+
+**Note:** that the origin name does not have a trailing / or a port number.
+
+```
+ActionAuth.configure do |config|
+  config.webauthn_enabled = true
+  config.webauthn_origin = "http://localhost:3000" # or "https://example.com"
+  config.webauthn_rp_name = Rails.application.class.to_s.deconstantize
+end
+```
 
 ## License
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
@@ -134,5 +173,6 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 ## Credits
 
-Heavily inspired by [Drifting Ruby #300](https://www.driftingruby.com/episodes/authentication-from-scratch)
-and [Authentication Zero](https://github.com/lazaronixon/authentication-zero).
+❤️ Heavily inspired by [Drifting Ruby #300](https://www.driftingruby.com/episodes/authentication-from-scratch)
+and [Authentication Zero](https://github.com/lazaronixon/authentication-zero) and WebAuthn work from
+[cedarcode](https://www.cedarcode.com/).

@@ -1,0 +1,16 @@
+<h2 class="">Use one of your security keys to sign in</h2>
+
+<%= form_with scope: :webauthn_credential_authentication,
+  url: options_for_webauthn_credential_authentications_path,
+  id: "webauthn_credential_form",
+  data: { controller: "credential-authenticator", action: "ajax:success->credential-authenticator#verifyKey" } do |form| %>
+
+  <div class="mb-3">
+    <%= form.submit "Use Security Key", class: "btn btn-primary" %>
+  </div>
+
+  <div class="mb-3">
+    If it's an USB key be sure to insert it and, if necessary, tap it.
+  </div>
+<% end %>
+

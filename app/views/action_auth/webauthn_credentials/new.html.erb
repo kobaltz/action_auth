@@ -1,0 +1,21 @@
+<h2 class="">Add a security key:</h2>
+<%= form_with scope: :webauthn_credential,
+              url: options_for_webauthn_credentials_path,
+              id: "webauthn_credential_form",
+              data: {
+                controller: "add-credential",
+                action: "ajax:success->add-credential#create",
+              } do |form| %>
+
+  <div class="mb-3">
+    <%= form.text_field :nickname, autofocus: true, placeholder: "New Security Key nickname", required: true %>
+  </div>
+
+  <div class="mb-3">
+    <%= form.submit "Add Security Key", class: "btn btn-primary" %>
+  </div>
+
+  <div class="">
+    <span class="">If it's an USB key be sure to insert it and, if necessary, tap it.</span>
+  </div>
+<% end %>
