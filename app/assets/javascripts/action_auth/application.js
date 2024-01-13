@@ -65,10 +65,12 @@ Stimulus.register(
 Stimulus.register(
   "credential-authenticator",
   class extends Controller {
-    verifyKey(event) {
-      const credentialOptions = event.detail;
-      console.log(credentialOptions);
-      Credential.get(credentialOptions);
+    static values = { options: Object }
+    connect() {
+      console.log(this.optionsValue);
+      if (this.hasOptionsValue) {
+        Credential.get(this.optionsValue);
+      }
     }
   }
 );

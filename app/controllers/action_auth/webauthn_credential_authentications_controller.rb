@@ -4,16 +4,9 @@ class ActionAuth::WebauthnCredentialAuthenticationsController < ApplicationContr
   layout "action_auth/application-full-width"
 
   def new
-  end
-
-  def options
     get_options = WebAuthn::Credential.options_for_get(allow: user.action_auth_webauthn_credentials.pluck(:external_id))
-
     session[:current_challenge] = get_options.challenge
-
-    respond_to do |format|
-      format.json { render json: get_options }
-    end
+    @options = get_options
   end
 
   def create

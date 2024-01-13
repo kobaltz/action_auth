@@ -16,8 +16,6 @@ ActionAuth::Engine.routes.draw do
       post :options, on: :collection, as: 'options_for'
     end
 
-    resource :webauthn_credential_authentications, only: [:new, :create] do
-      post :options, on: :collection, as: 'options_for'
-    end
+    resource :webauthn_credential_authentications, only: [:new, :create]
   end
 end

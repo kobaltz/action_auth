@@ -76,9 +76,7 @@ class WebauthnCredentialsControllerTest < ActionDispatch::IntegrationTest
 
     raw_authentication_challenge = SecureRandom.random_bytes(32)
     authentication_challenge = WebAuthn.configuration.encoder.encode(raw_authentication_challenge)
-    WebAuthn::PublicKeyCredential::RequestOptions.stub_any_instance(:raw_challenge, raw_authentication_challenge) do
-      post action_auth.options_for_webauthn_credential_authentications_path, params: { format: :json }
-    end
+
     public_key_credential = fake_client.get(challenge: authentication_challenge)
     post(action_auth.webauthn_credential_authentications_path, params: public_key_credential)
     delete action_auth.webauthn_credential_path(user.action_auth_webauthn_credentials.first.id)
