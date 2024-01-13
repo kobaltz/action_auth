@@ -167,6 +167,13 @@ ActionAuth.configure do |config|
 end
 ```
 
+### Demo
+
+Here's a view of the experience with WebAuthn
+
+![action_auth](https://github.com/kobaltz/action_auth/assets/635114/fa88d83c-5af5-471b-a094-ec9785ea2f87)
+
+
 ## License
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
 
