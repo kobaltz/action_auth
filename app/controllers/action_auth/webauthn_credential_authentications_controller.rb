@@ -1,7 +1,7 @@
 class ActionAuth::WebauthnCredentialAuthenticationsController < ApplicationController
   before_action :ensure_user_not_authenticated
   before_action :ensure_login_initiated
-  layout "action_auth/application-full-width"
+  layout "action_auth/application"
 
   def new
     get_options = WebAuthn::Credential.options_for_get(allow: user.action_auth_webauthn_credentials.pluck(:external_id))

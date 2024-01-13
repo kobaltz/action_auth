@@ -1,6 +1,6 @@
 class ActionAuth::WebauthnCredentialsController < ApplicationController
   before_action :authenticate_user!
-  layout "action_auth/application-full-width"
+  layout "action_auth/application"
 
   def new
   end

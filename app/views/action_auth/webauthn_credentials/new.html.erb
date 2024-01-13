@@ -1,4 +1,4 @@
-<h2 class="">Add a security key:</h2>
+<h2 class="action-auth--text-center">Add a security key</h2>
 <%= form_with scope: :webauthn_credential,
               url: options_for_webauthn_credentials_path,
               id: "webauthn_credential_form",
@@ -11,11 +11,15 @@
     <%= form.text_field :nickname, autofocus: true, placeholder: "New Security Key nickname", required: true %>
   </div>
 
-  <div class="mb-3">
+  <div class="mb-3 action-auth--text-center">
     <%= form.submit "Add Security Key", class: "btn btn-primary" %>
   </div>
 
-  <div class="">
-    <span class="">If it's an USB key be sure to insert it and, if necessary, tap it.</span>
+  <div class="mb-3 action-auth--text-center">
+    Insert a USB key, if necessary, and tap it.
   </div>
+<% end %>
+
+<%= content_for :cancel_path do %>
+  <%= link_to "Cancel", action_auth.sessions_path %>
 <% end %>

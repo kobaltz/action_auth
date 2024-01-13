@@ -154,3 +154,7 @@ input[type="password"] {
 .action-auth--table td {
   transition: background-color 0.3s;
 }
+
+.action-auth--text-center {
+  text-align: center !important;
+}

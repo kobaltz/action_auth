@@ -12,7 +12,7 @@ const Credential = {
     }
   },
 
-  callback: function (url, body) {
+  callback: function (url, body, redirectUrl) {
     const token = this.getCRFSToken();
     fetch(url, {
       method: "POST",
@@ -25,7 +25,8 @@ const Credential = {
       credentials: 'same-origin'
     }).then(function (response) {
       if (response.ok) {
-        window.location.replace("/");
+        console.log("Credential created", response);
+        window.location.replace(redirectUrl);
       } else if (response.status < 500) {
         response.text();
       }
@@ -34,8 +35,9 @@ const Credential = {
 
   create: function (callbackUrl, credentialOptions) {
     const self = this;
+    const webauthnRedirectUrl = document.querySelector('meta[name="webauthn_redirect_url"]').getAttribute("content");
     WebAuthnJSON.create({ "publicKey": credentialOptions }).then(function (credential) {
-      self.callback(callbackUrl, credential);
+      self.callback(callbackUrl, credential, webauthnRedirectUrl);
     });
   },
 
@@ -43,7 +45,7 @@ const Credential = {
     const self = this;
     const webauthnUrl = document.querySelector('meta[name="webauthn_auth_url"]').getAttribute("content");
     WebAuthnJSON.get({ "publicKey": credentialOptions }).then(function (credential) {
-      self.callback(webauthnUrl, credential);
+      self.callback(webauthnUrl, credential, "/");
     });
   }
 };

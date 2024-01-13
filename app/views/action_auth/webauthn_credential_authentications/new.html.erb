@@ -1,12 +1,18 @@
-<h2 class="">Use one of your security keys to sign in</h2>
+<h2 class="action-auth--text-center">Use a passkey to sign in</h2>
 
 <%= content_tag :div,
   id: "webauthn_credential_form",
-  data: { controller: "credential-authenticator",
-  "credential-authenticator-options-value": @options } do %>
+  data: {
+    controller: "credential-authenticator",
+    "credential-authenticator-options-value": @options
+  },
+  class: "action-auth--text-center" do %>
 
-  <div class="mb-3">
-    If it's an USB key be sure to insert it and, if necessary, tap it.
+  <div class="mb-3 action-auth--text-center">
+    Insert a USB key, if necessary, and tap it.
   </div>
 <% end %>
 
+<%= content_for :cancel_path do %>
+  <%= link_to "Cancel", action_auth.sign_in_path %>
+<% end %>

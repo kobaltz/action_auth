@@ -9,6 +9,7 @@
   <% if ActionAuth.configuration.webauthn_enabled? %>
     <%= tag :meta, name: :webauthn_auth_url, content: action_auth.webauthn_credential_authentications_url %>
     <%= tag :meta, name: :webauthn_cred_url, content: action_auth.webauthn_credentials_url %>
+    <%= tag :meta, name: :webauthn_redirect_url, content: action_auth.sessions_url %>
   <% end %>
 </head>
 <body class="bg-light">
