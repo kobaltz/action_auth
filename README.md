@@ -240,6 +240,15 @@ class CreatePosts < ActiveRecord::Migration[7.1]
 end
 ```
 
+And the post model doesn't need anything special to ActionAuth.
+
+```ruby
+# app/models/post.rb
+class Post < ApplicationRecord
+  belongs_to :user
+end
+```
+
 #### Using the Current model
 
 Now, you'll be able to do things like `Current.user` and `Current.user.posts` within your application.
