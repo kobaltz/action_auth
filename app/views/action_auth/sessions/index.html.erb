@@ -29,7 +29,7 @@
   </table>
 </div>
 
-<% if ActionAuth.configuration&.webauthn_enabled? %>
+<% if ActionAuth.configuration.webauthn_enabled? %>
   <% if current_user.second_factor_enabled? %>
     <h3>Your Security Keys:</h3>
     <table class="action-auth--table">

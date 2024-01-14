@@ -11,7 +11,7 @@ ActionAuth::Engine.routes.draw do
     resource :password_reset,     only: [:new, :edit, :create, :update]
   end
 
-  if ActionAuth.configuration&.webauthn_enabled?
+  if ActionAuth.configuration.webauthn_enabled?
     resources :webauthn_credentials, only: [:new, :create, :destroy] do
       post :options, on: :collection, as: 'options_for'
     end

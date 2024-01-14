@@ -4,11 +4,15 @@ require "action_auth/configuration"
 
 module ActionAuth
   class << self
-    attr_accessor :configuration
+    attr_writer :configuration
+
+    # Initialize configuration with default settings
+    def configuration
+      @configuration ||= Configuration.new
+    end
 
     def configure
-      self.configuration ||= Configuration.new
-      yield(configuration)
+      yield(configuration) if block_given?  # Yield only if a block is provided
       configure_webauthn
     end
 
