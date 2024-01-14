@@ -14,6 +14,8 @@ module ActionAuth
 
     def configure_webauthn
       return unless configuration.webauthn_enabled?
+      return unless defined?(WebAuthn)
+
       WebAuthn.configure do |config|
         config.origin = configuration.webauthn_origin
         config.rp_name = configuration.webauthn_rp_name
