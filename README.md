@@ -33,6 +33,13 @@ In your view layout
 <% end %>
 ```
 
+If you're using something like importmaps and plain css, then you may need to add the lines below to your `app/assets/config/manifest.js` file.
+
+```javascript
+//= link action_auth/application.css
+//= link action_auth/application.js
+```
+
 See [WebAuthn](#webauthn) for additional configuration steps if you want to enable WebAuthn.
 In your `config/initializers/action_auth.rb` file, you can add the following configuration
 settings.
