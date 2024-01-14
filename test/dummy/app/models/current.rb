@@ -1,5 +1,6 @@
 class Current < ActiveSupport::CurrentAttributes
   def user
-    User.find_by(id: ActionAuth::Current.user&.id)
+    return unless ActionAuth::Current.user
+    ActionAuth::Current.user.becomes(User)
   end
 end

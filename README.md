@@ -202,11 +202,14 @@ end
 
 #### Setting up the Current model
 
+We can set the user to become a User record instead of an ActionAuth::User record. This will then allow `Current.user.posts` to work.
+
 ```ruby
 # app/models/current.rb
 class Current < ActiveSupport::CurrentAttributes
   def user
-    User.find_by(id: ActionAuth::Current.user&.id)
+    return unless ActionAuth::Current.user
+    ActionAuth::Current.user.becomes(User)
   end
 end
 ```
