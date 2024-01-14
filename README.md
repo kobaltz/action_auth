@@ -160,13 +160,13 @@ The reason why you need to add the gem is because it's not added to the gemspec 
 intentional as not all users will want to add this functionality. This will help minimize
 the number of gems that your application relies on unless if they are features that you want to use.
 
-##### Add the gem
+#### Add the gem
 
 ```
 bundle add webauthn
 ```
 
-#### Configure the WebAuthn settings
+### Configure the WebAuthn settings
 
 **Note:** that the origin name does not have a trailing / or a port number.
 
@@ -179,13 +179,13 @@ ActionAuth.configure do |config|
 end
 ```
 
-#### Demo
+### Demo
 
 Here's a view of the experience with WebAuthn
 
 ![action_auth](https://github.com/kobaltz/action_auth/assets/635114/fa88d83c-5af5-471b-a094-ec9785ea2f87)
 
-### Within Your Application
+## Within Your Application
 
 It can be cumbersome to have to reference ActionAuth::User within the application as well as in the
 relationships between models. Luckily, we can use ActiveSupport::CurrentAttributes to make this
