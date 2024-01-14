@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_01_11_142545) do
+ActiveRecord::Schema[7.1].define(version: 2024_01_14_051355) do
   create_table "action_auth_sessions", force: :cascade do |t|
     t.integer "action_auth_user_id", null: false
     t.string "user_agent"
@@ -42,6 +42,15 @@ ActiveRecord::Schema[7.1].define(version: 2024_01_11_142545) do
     t.index ["external_id"], name: "index_action_auth_webauthn_credentials_on_external_id", unique: true
   end
 
+  create_table "posts", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "title"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_posts_on_user_id"
+  end
+
   add_foreign_key "action_auth_sessions", "action_auth_users"
   add_foreign_key "action_auth_webauthn_credentials", "action_auth_users"
+  add_foreign_key "posts", "action_auth_users", column: "user_id"
 end

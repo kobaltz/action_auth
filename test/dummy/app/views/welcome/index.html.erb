@@ -45,3 +45,16 @@ WebAuthn Enabled: <%= ActionAuth.configuration.webauthn_enabled? %>
     </tr>
   </tbody>
 </table>
+
+<h2>Dummy App Settings</h2>
+
+<h3>app/models/current.rb</h3>
+<pre><%= File.read(Rails.root.join('app', 'models', 'current.rb')) %></pre>
+<strong>Current.user:</strong> <%= Current.user.inspect %>
+
+<h3>app/models/user.rb</h3>
+<pre><%= File.read(Rails.root.join('app', 'models', 'user.rb')) %></pre>
+
+<h3>Associations</h3>
+<pre>bin/rails g scaffold post user:belongs_to title</pre>
+<pre><%= File.read(Rails.root.join('db', 'migrate', '20240114051355_create_posts.rb')) %></pre>

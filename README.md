@@ -150,7 +150,7 @@ they can add a Passkey to their account. The Passkey could be an iCloud Keychain
 key like a Yubikey, or a mobile device. If enabled and configured, the user will be prompted to use
 their Passkey after they log in.
 
-### Configuration
+#### Configuration
 
 The migrations are already copied over to your application when you run
 `bin/rails action_auth:install:migrations`. There are only two steps that you have to take to enable
@@ -160,13 +160,13 @@ The reason why you need to add the gem is because it's not added to the gemspec 
 intentional as not all users will want to add this functionality. This will help minimize
 the number of gems that your application relies on unless if they are features that you want to use.
 
-#### Add the gem
+##### Add the gem
 
 ```
 bundle add webauthn
 ```
 
-### Configure the WebAuthn settings
+#### Configure the WebAuthn settings
 
 **Note:** that the origin name does not have a trailing / or a port number.
 
@@ -179,12 +179,67 @@ ActionAuth.configure do |config|
 end
 ```
 
-### Demo
+#### Demo
 
 Here's a view of the experience with WebAuthn
 
 ![action_auth](https://github.com/kobaltz/action_auth/assets/635114/fa88d83c-5af5-471b-a094-ec9785ea2f87)
 
+### Within Your Application
+
+It can be cumbersome to have to reference ActionAuth::User within the application as well as in the
+relationships between models. Luckily, we can use ActiveSupport::CurrentAttributes to make this
+process easier as well as inheritance of our models.
+
+#### Setting up the User model
+
+```ruby
+# app/models/user.rb
+class User < ActionAuth::User
+  has_many :posts, dependent: :destroy
+end
+```
+
+#### Setting up the Current model
+
+```ruby
+# app/models/current.rb
+class Current < ActiveSupport::CurrentAttributes
+  def user
+    User.find_by(id: ActionAuth::Current.user&.id)
+  end
+end
+```
+
+#### Generating an association
+
+There's one little gotcha when generating the associations. We are using `user:belongs_to` instead of
+`action_auth_user:belongs_to`. However, when the foreign key is generated, it will look for the users table
+instead of the action_auth_users table. To get around this, we'll need to modify the migration.
+
+```bash
+bin/rails g scaffold posts user:belongs_to title
+```
+
+We can update the `foreign_key` from `true` to `{ to_table: :action_auth_users }` to get around this.
+
+```ruby
+# db/migrate/XXXXXXXXXXX_create_posts.rb
+class CreatePosts < ActiveRecord::Migration[7.1]
+  def change
+    create_table :posts do |t|
+      t.belongs_to :user, null: false, foreign_key: { to_table: :action_auth_users }
+      t.string :title
+
+      t.timestamps
+    end
+  end
+end
+```
+
+#### Using the Current model
+
+Now, you'll be able to do things like `Current.user` and `Current.user.posts` within your application.
 
 ## License
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
