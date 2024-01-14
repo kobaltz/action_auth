@@ -7,6 +7,19 @@ user experience akin to that offered by the well-regarded Devise gem.
 
 [![Ruby](https://github.com/kobaltz/action_auth/actions/workflows/test.yml/badge.svg)](https://github.com/kobaltz/action_auth/actions/workflows/test.yml)
 
+## Table of Contents
+1. [Introduction](#introduction)
+2. [Installation](#installation)
+3. [Features](#features)
+4. [Usage](#usage)
+   - [Routes](#routes)
+   - [Helper Methods](#helper-methods)
+   - [Restricting and Changing Routes](#restricting-and-changing-routes)
+5. [WebAuthn](#webauthn)
+6. [Within Your Application](#within-your-application)
+7. [License](#license)
+8. [Credits](#credits)
+
 ## Installation
 Add this line to your application's Gemfile:
 
@@ -268,5 +281,5 @@ The gem is available as open source under the terms of the [MIT License](https:/
 ## Credits
 
 ❤️ Heavily inspired by [Drifting Ruby #300](https://www.driftingruby.com/episodes/authentication-from-scratch)
-and [Authentication Zero](https://github.com/lazaronixon/authentication-zero) and WebAuthn work from
+and [Authentication Zero](https://github.com/lazaronixon/authentication-zero) and
 [cedarcode](https://www.cedarcode.com/).

@@ -6,13 +6,12 @@ module ActionAuth
   class << self
     attr_writer :configuration
 
-    # Initialize configuration with default settings
     def configuration
       @configuration ||= Configuration.new
     end
 
     def configure
-      yield(configuration) if block_given?  # Yield only if a block is provided
+      yield(configuration) if block_given?
       configure_webauthn
     end
 
