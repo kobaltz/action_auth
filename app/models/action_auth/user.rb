@@ -5,7 +5,7 @@ module ActionAuth
     has_many :action_auth_sessions, dependent: :destroy,
       class_name: "ActionAuth::Session", foreign_key: "action_auth_user_id"
 
-    if ActionAuth.configuration.webauthn_enabled?
+    if ActionAuth.configuration&.webauthn_enabled?
       has_many :action_auth_webauthn_credentials, dependent: :destroy,
         class_name: "ActionAuth::WebauthnCredential", foreign_key: "action_auth_user_id"
     end
