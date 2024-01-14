@@ -251,7 +251,8 @@ end
 
 #### Using the Current model
 
-Now, you'll be able to do things like `Current.user` and `Current.user.posts` within your application.
+Now, you'll be able to do things like `Current.user` and `Current.user.posts` within your application. However, I recommend that you still use
+the helpers around `user_signed_in?` to verify that the `ActionAuth::Current.user` is not nil (or nil if they are signed out). This will help ensure that any thread safety issues are avoided.
 
 ## License
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
