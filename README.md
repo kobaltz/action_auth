@@ -17,6 +17,8 @@ user experience akin to that offered by the well-regarded Devise gem.
    - [Restricting and Changing Routes](#restricting-and-changing-routes)
 5. [WebAuthn](#webauthn)
 6. [Within Your Application](#within-your-application)
+7. Customizing
+   - [Sign In Page](https://github.com/kobaltz/action_auth/wiki/Overriding-Sign-In-page-view)
 7. [License](#license)
 8. [Credits](#credits)
 
