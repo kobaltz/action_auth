@@ -136,8 +136,10 @@ can create a constraint to restrict access to these routes.
       end
 
       def self.current_user(request)
-        session_token = request.cookie_jar.signed[:session_token]
-        ActionAuth::Session.find_by(id: session_token)&.action_auth_user.becomes(User)
+         session_token = request.cookie_jar.signed[:session_token]
+         session = ActionAuth::Session.find_by(id: session_token)
+         return nil unless session.present
+         session.action_auth_user&.becomes(User)
       end
     end
 
