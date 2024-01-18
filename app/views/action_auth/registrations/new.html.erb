@@ -36,6 +36,8 @@
 
 <div class="mb-3">
   <%= link_to "Sign In", sign_in_path %> |
-  <%= link_to "Reset Password", new_identity_password_reset_path %> |
-  <%= link_to "Verify Email", identity_email_verification_path %>
+  <%= link_to "Reset Password", new_identity_password_reset_path %>
+  <% if ActionAuth.configuration.verify_email_on_sign_in %>
+    | <%= link_to "Verify Email", identity_email_verification_path %>
+  <% end %>
 </div>

@@ -21,8 +21,8 @@
         <%= content_tag :tr, id: dom_id(session) do %>
           <td><%= session.user_agent %></td>
           <td nowrap><%= session.ip_address %></td>
-          <td nowrap><%= session.created_at %></td>
-          <td nowrap><%= button_to "Log out", session, method: :delete, class: "btn btn-primary" %></td>
+          <td><%= session.created_at %></td>
+          <td><%= button_to "Log out", session, method: :delete, class: "btn btn-primary" %></td>
         <% end %>
       <% end %>
     </tbody>
