@@ -29,6 +29,13 @@ body {
   background-color: rgb(255, 255, 255) !important;
 }
 
+@media screen and (max-width: 768px) {
+  .container {
+    width: calc(100% - 10px);
+    margin-left: 5px;
+    margin-right: 5px;
+  }
+}
 .container-fluid {
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
