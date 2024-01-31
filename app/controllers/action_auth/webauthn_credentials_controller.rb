@@ -22,7 +22,9 @@ class ActionAuth::WebauthnCredentialsController < ApplicationController
 
     respond_to do |format|
       format.json { render json: create_options }
-      format.turbo_stream { render json: create_options, status: :see_other }
+      if defined?(Turbo)
+        format.turbo_stream { render json: create_options, status: :see_other }
+      end
     end
   end
 
