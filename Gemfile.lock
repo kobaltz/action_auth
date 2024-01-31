@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    action_auth (0.2.12)
+    action_auth (0.2.13)
       bcrypt (~> 3.1.0)
       rails (~> 7.1)
 
