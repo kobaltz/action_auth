@@ -76,24 +76,40 @@ Stimulus.register(
   }
 );
 
-document.addEventListener('DOMContentLoaded', function () {
-  const form = document.getElementById('webauthn_credential_form');
-  if (form) {
-    form.addEventListener('submit', function (event) {
-      event.preventDefault();
-      const formData = new FormData(form);
-      fetch(form.action, {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
-        },
-        credentials: 'same-origin'
-      }).then(response => {
-        return response.json();
-      }).then(data => {
-        form.dispatchEvent(new CustomEvent('ajax:success', { detail: data }));
+function submitFormWithTurbo(form) {
+  const formData = new FormData(form);
+  fetch(form.action, {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+    },
+    credentials: 'same-origin'
+  }).then(response => {
+    return response.json();
+  }).then(data => {
+    form.dispatchEvent(new CustomEvent('ajax:success', { detail: data }));
+  });
+}
+
+if (!window.Turbo) {
+  document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('webauthn_credential_form');
+    if (form) {
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        submitFormWithTurbo(form);
       });
-    });
-  }
-});
+    }
+  });
+} else {
+  document.addEventListener('turbo:load', function () {
+    const form = document.getElementById('webauthn_credential_form');
+    if (form) {
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        submitFormWithTurbo(form);
+      });
+    }
+  });
+}
