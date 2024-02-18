@@ -111,7 +111,8 @@ GEM
     irb (1.11.2)
       rdoc
       reline (>= 0.4.2)
-    jwt (2.7.1)
+    jwt (2.8.0)
+      base64
     launchy (2.5.2)
       addressable (~> 2.8)
     letter_opener (1.9.0)
