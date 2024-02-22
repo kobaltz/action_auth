@@ -28,7 +28,7 @@ class ActionAuth::Identity::PasswordResetsControllerTest < ActionDispatch::Integ
   test "should not send a password reset email" do
     @user.update(verified: false)
     post identity_password_reset_url, params: { email: @user.email }
-    assert_redirected_to new_identity_password_reset_path
+    assert_redirected_to sign_in_url
   end
 
   test "should not send a password reset email to a nonexistent email" do
@@ -36,7 +36,7 @@ class ActionAuth::Identity::PasswordResetsControllerTest < ActionDispatch::Integ
       post identity_password_reset_url, params: { email: "invalid_email@hey.com" }
     end
 
-    assert_redirected_to new_identity_password_reset_url
+    assert_redirected_to sign_in_url
     assert_equal "You can't reset your password until you verify your email", flash[:alert]
   end
 
@@ -47,7 +47,7 @@ class ActionAuth::Identity::PasswordResetsControllerTest < ActionDispatch::Integ
       post identity_password_reset_url, params: { email: @user.email }
     end
 
-    assert_redirected_to new_identity_password_reset_url
+    assert_redirected_to sign_in_url
     assert_equal "You can't reset your password until you verify your email", flash[:alert]
   end
 

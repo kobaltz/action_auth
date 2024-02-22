@@ -11,14 +11,14 @@ class ActionAuth::Identity::EmailVerificationsControllerTest < ActionDispatch::I
 
   test "should send a verification email" do
     post identity_email_verification_url
-    assert_redirected_to "/"
+    assert_redirected_to sign_in_url
   end
 
   test "should verify email" do
     sid = @user.generate_token_for(:email_verification)
 
     get identity_email_verification_url(sid: sid, email: @user.email)
-    assert_redirected_to "/"
+    assert_redirected_to sign_in_url
   end
 
   test "should not verify email with expired token" do
