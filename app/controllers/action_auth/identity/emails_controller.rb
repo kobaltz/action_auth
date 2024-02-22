@@ -27,9 +27,9 @@ module ActionAuth
       def redirect_to_root
         if @user.email_previously_changed?
           resend_email_verification
-          redirect_to main_app.root_path, notice: "Your email has been changed"
+          redirect_to sign_in_path, notice: "Your email has been changed. Check your email to verify your email."
         else
-          redirect_to main_app.root_path
+          redirect_to sign_in_path
         end
       end
 

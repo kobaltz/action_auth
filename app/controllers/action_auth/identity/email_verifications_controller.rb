@@ -5,13 +5,13 @@ module ActionAuth
 
       def show
         @user.update! verified: true
-        redirect_to main_app.root_path, notice: "Thank you for verifying your email address"
+        redirect_to sign_in_path, notice: "Thank you for verifying your email address"
       end
 
       def create
         user = ActionAuth::User.find_by(email: params[:email])
         UserMailer.with(user: user).email_verification.deliver_later if user
-        redirect_to main_app.root_path, notice: "We sent a verification email to your email address"
+        redirect_to sign_in_path, notice: "We sent a verification email to your email address"
       end
 
       private
