@@ -100,8 +100,7 @@ GEM
     crass (1.0.6)
     date (3.3.4)
     docile (1.4.0)
-    drb (2.2.0)
-      ruby2_keywords
+    drb (2.2.1)
     erubi (1.12.0)
     globalid (1.2.1)
       activesupport (>= 6.1)
@@ -111,7 +110,7 @@ GEM
     irb (1.11.2)
       rdoc
       reline (>= 0.4.2)
-    jwt (2.8.0)
+    jwt (2.8.1)
       base64
     launchy (2.5.2)
       addressable (~> 2.8)
@@ -125,7 +124,7 @@ GEM
       net-imap
       net-pop
       net-smtp
-    marcel (1.0.3)
+    marcel (1.0.4)
     mini_mime (1.1.5)
     minitest (5.22.2)
     minitest-stub_any_instance (1.0.3)
@@ -195,7 +194,6 @@ GEM
       psych (>= 4.0.0)
     reline (0.4.3)
       io-console (~> 0.5)
-    ruby2_keywords (0.0.5)
     safety_net_attestation (0.4.0)
       jwt (~> 2.0)
     simplecov (0.22.0)
