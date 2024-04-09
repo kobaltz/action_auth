@@ -194,7 +194,7 @@ GEM
     rake (13.2.1)
     rdoc (6.6.3.1)
       psych (>= 4.0.0)
-    reline (0.5.0)
+    reline (0.5.1)
       io-console (~> 0.5)
     safety_net_attestation (0.4.0)
       jwt (~> 2.0)
