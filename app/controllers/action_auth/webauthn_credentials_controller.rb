@@ -15,7 +15,7 @@ class ActionAuth::WebauthnCredentialsController < ApplicationController
         id: current_user.webauthn_id,
         name: current_user.email
       },
-      exclude: current_user.action_auth_webauthn_credentials.pluck(:external_id)
+      exclude: current_user.webauthn_credentials.pluck(:external_id)
     )
 
     session[:current_challenge] = create_options.challenge
@@ -34,7 +34,7 @@ class ActionAuth::WebauthnCredentialsController < ApplicationController
     begin
       webauthn_credential.verify(session[:current_challenge])
 
-      credential = current_user.action_auth_webauthn_credentials.build(
+      credential = current_user.webauthn_credentials.build(
         external_id: webauthn_credential.id,
         nickname: params[:credential_nickname],
         public_key: webauthn_credential.public_key,
@@ -53,7 +53,7 @@ class ActionAuth::WebauthnCredentialsController < ApplicationController
   end
 
   def destroy
-    current_user.action_auth_webauthn_credentials.destroy(params[:id])
+    current_user.webauthn_credentials.destroy(params[:id])
 
     redirect_to sessions_path
   end

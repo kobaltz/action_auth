@@ -12,7 +12,7 @@ class PostsController < ApplicationController
 
   # GET /posts/new
   def new
-    @post = Post.new
+    @post = Current.user.posts.new
   end
 
   # GET /posts/1/edit
@@ -21,7 +21,7 @@ class PostsController < ApplicationController
 
   # POST /posts
   def create
-    @post = Post.new(post_params)
+    @post = Current.user.posts.new(post_params)
 
     if @post.save
       redirect_to @post, notice: "Post was successfully created."
@@ -53,6 +53,6 @@ class PostsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def post_params
-      params.require(:post).permit(:user_id, :title)
+      params.require(:post).permit(:title)
     end
 end

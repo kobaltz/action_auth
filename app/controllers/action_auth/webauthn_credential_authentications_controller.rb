@@ -4,7 +4,7 @@ class ActionAuth::WebauthnCredentialAuthenticationsController < ApplicationContr
   layout "action_auth/application"
 
   def new
-    get_options = WebAuthn::Credential.options_for_get(allow: user.action_auth_webauthn_credentials.pluck(:external_id))
+    get_options = WebAuthn::Credential.options_for_get(allow: user.webauthn_credentials.pluck(:external_id))
     session[:current_challenge] = get_options.challenge
     @options = get_options
   end
@@ -12,7 +12,7 @@ class ActionAuth::WebauthnCredentialAuthenticationsController < ApplicationContr
   def create
     webauthn_credential = WebAuthn::Credential.from_get(params)
 
-    credential = user.action_auth_webauthn_credentials.find_by(external_id: webauthn_credential.id)
+    credential = user.webauthn_credentials.find_by(external_id: webauthn_credential.id)
 
     begin
       webauthn_credential.verify(
@@ -23,7 +23,7 @@ class ActionAuth::WebauthnCredentialAuthenticationsController < ApplicationContr
 
       credential.update!(sign_count: webauthn_credential.sign_count)
       session.delete(:webauthn_user_id)
-      session = user.action_auth_sessions.create
+      session = user.sessions.create
       cookies.signed.permanent[:session_token] = { value: session.id, httponly: true }
       render json: { status: "ok" }, status: :ok
     rescue WebAuthn::Error => e

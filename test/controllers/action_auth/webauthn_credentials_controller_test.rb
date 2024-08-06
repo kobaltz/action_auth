@@ -79,10 +79,10 @@ class WebauthnCredentialsControllerTest < ActionDispatch::IntegrationTest
 
     public_key_credential = fake_client.get(challenge: authentication_challenge)
     post(action_auth.webauthn_credential_authentications_path, params: public_key_credential)
-    delete action_auth.webauthn_credential_path(user.action_auth_webauthn_credentials.first.id)
+    delete action_auth.webauthn_credential_path(user.webauthn_credentials.first.id)
 
     assert_redirected_to action_auth.sessions_path
-    assert_empty user.reload.action_auth_webauthn_credentials
+    assert_empty user.reload.webauthn_credentials
   end
 
   private

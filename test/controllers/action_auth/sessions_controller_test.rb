@@ -34,7 +34,7 @@ module ActionAuth
     test "should sign out" do
       sign_in_as(@user)
 
-      delete session_url(@user.action_auth_sessions.last)
+      delete session_url(@user.sessions.last)
       assert_response :redirect
     end
   end
