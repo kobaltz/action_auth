@@ -34,6 +34,31 @@ using ActionAuth, you will need to rename the table to `users` with a migration 
 rename_table :action_auth_users, :users
 ```
 
+Coming from `v0.3.0` to `v1.0.0`, you will need to create a migration to rename the table and foreign keys.
+
+```ruby
+class UpgradeActionAuth < ActiveRecord::Migration[7.1]
+  def change
+    rename_table :action_auth_users, :users
+
+    rename_table :action_auth_sessions, :sessions
+    rename_column :sessions, :action_auth_user_id, :user_id
+
+    rename_table :action_auth_webauthn_credentials, :webauthn_credentials
+    rename_column :webauthn_credentials, :action_auth_user_id, :user_id
+  end
+end
+```
+
+You will then need to undo the migrations where the foreign keys were added in cases where `foreign_key: true` was
+changed to `foreign_key: { to_table: 'action_auth_users' }`. You can do this for each table with a migration like:
+
+```ruby
+add_foreign_key :user_settings, :users, column: :user_id unless foreign_key_exists?(:user_settings, :users)
+add_foreign_key :profiles, :users, column: :user_id unless foreign_key_exists?(:profiles, :users)
+add_foreign_key :nfcs, :users, column: :user_id unless foreign_key_exists?(:nfcs, :users)
+```
+
 ## Installation
 Add this line to your application's Gemfile:
 
