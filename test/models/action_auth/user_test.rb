@@ -91,7 +91,7 @@ module ActionAuth
 
     test "should delete sessions after password change" do
       @user.save
-      session = @user.action_auth_sessions.create
+      session = @user.sessions.create
       @user.update(password: "newpassword123")
       assert_not Session.exists?(session.id)
     end

@@ -1,6 +1,6 @@
 class AddWebauthnCredentials < ActiveRecord::Migration[7.1]
   def change
-    create_table :action_auth_webauthn_credentials do |t|
+    create_table :webauthn_credentials do |t|
       t.string :external_id, null: false
       t.string :public_key, null: false
       t.string :nickname, null: false
@@ -8,7 +8,7 @@ class AddWebauthnCredentials < ActiveRecord::Migration[7.1]
 
       t.index :external_id, unique: true
 
-      t.references :action_auth_user, foreign_key: true
+      t.references :user, foreign_key: true
 
       t.timestamps
     end

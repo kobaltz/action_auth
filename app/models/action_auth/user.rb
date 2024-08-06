@@ -1,13 +1,15 @@
 module ActionAuth
   class User < ApplicationRecord
+    self.table_name = "users"
+
     has_secure_password
 
-    has_many :action_auth_sessions, dependent: :destroy,
-      class_name: "ActionAuth::Session", foreign_key: "action_auth_user_id"
+    has_many :sessions, dependent: :destroy,
+      class_name: "ActionAuth::Session", foreign_key: "user_id"
 
     if ActionAuth.configuration.webauthn_enabled?
-      has_many :action_auth_webauthn_credentials, dependent: :destroy,
-        class_name: "ActionAuth::WebauthnCredential", foreign_key: "action_auth_user_id"
+      has_many :webauthn_credentials, dependent: :destroy,
+        class_name: "ActionAuth::WebauthnCredential", foreign_key: "user_id"
     end
 
     generates_token_for :email_verification, expires_in: 2.days do
@@ -28,12 +30,12 @@ module ActionAuth
     end
 
     after_update if: :password_digest_previously_changed? do
-      action_auth_sessions.where.not(id: Current.session).delete_all
+      sessions.where.not(id: Current.session).delete_all
     end
 
     def second_factor_enabled?
       return false unless ActionAuth.configuration.webauthn_enabled?
-      action_auth_webauthn_credentials.any?
+      webauthn_credentials.any?
     end
   end
 end

@@ -41,7 +41,7 @@
         </tr>
       </thead>
       <tbody>
-        <% current_user.action_auth_webauthn_credentials.each do |credential| %>
+        <% current_user.webauthn_credentials.each do |credential| %>
           <%= content_tag :tr, id: dom_id(credential) do %>
             <td><%= credential.nickname %></td>
             <td nowrap><%= credential.created_at.strftime('%B %d, %Y') %></td>

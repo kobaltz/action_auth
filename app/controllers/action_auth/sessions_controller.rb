@@ -5,7 +5,7 @@ module ActionAuth
 
     def index
       @action_auth_wide = true
-      @sessions = Current.user.action_auth_sessions.order(created_at: :desc)
+      @sessions = Current.user.sessions.order(created_at: :desc)
     end
 
     def new
@@ -18,7 +18,7 @@ module ActionAuth
           redirect_to new_webauthn_credential_authentications_path
         else
           return if check_if_email_is_verified(user)
-          @session = user.action_auth_sessions.create
+          @session = user.sessions.create
           cookies.signed.permanent[:session_token] = { value: @session.id, httponly: true }
           redirect_to main_app.root_path, notice: "Signed in successfully"
         end
@@ -28,7 +28,7 @@ module ActionAuth
     end
 
     def destroy
-      session = Current.user.action_auth_sessions.find(params[:id])
+      session = Current.user.sessions.find(params[:id])
       session.destroy
       redirect_to main_app.root_path, notice: "That session has been logged out"
     end

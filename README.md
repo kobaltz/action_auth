@@ -22,6 +22,18 @@ user experience akin to that offered by the well-regarded Devise gem.
 7. [License](#license)
 8. [Credits](#credits)
 
+## Breaking Changes
+
+With the release of v1.0.0, there are some breaking changes that have been introduced. The
+biggest change is that the `ActionAuth::User` model now uses the table name of `users` instead
+of `action_auth_users`. This was done to make it easier to integrate with your application
+without having to worry about the table name. If you have an existing application that is
+using ActionAuth, you will need to rename the table to `users` with a migration like
+
+```ruby
+rename_table :action_auth_users, :users
+```
+
 ## Installation
 Add this line to your application's Gemfile:
 
@@ -242,28 +254,10 @@ end
 
 #### Generating an association
 
-There's one little gotcha when generating the associations. We are using `user:belongs_to` instead of
-`action_auth_user:belongs_to`. However, when the foreign key is generated, it will look for the users table
-instead of the action_auth_users table. To get around this, we'll need to modify the migration.
+We are using `user:belongs_to` instead of `action_auth_user:belongs_to`.
 
 ```bash
 bin/rails g scaffold posts user:belongs_to title
-```
-
-We can update the `foreign_key` from `true` to `{ to_table: :action_auth_users }` to get around this.
-
-```ruby
-# db/migrate/XXXXXXXXXXX_create_posts.rb
-class CreatePosts < ActiveRecord::Migration[7.1]
-  def change
-    create_table :posts do |t|
-      t.belongs_to :user, null: false, foreign_key: { to_table: :action_auth_users }
-      t.string :title
-
-      t.timestamps
-    end
-  end
-end
 ```
 
 And the post model doesn't need anything special to ActionAuth.

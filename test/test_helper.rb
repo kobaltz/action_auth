@@ -37,7 +37,7 @@ class ActionDispatch::IntegrationTest
     ActionAuth::User.create!(
       email: email,
       password: password,
-      action_auth_webauthn_credentials: [
+      webauthn_credentials: [
         ActionAuth::WebauthnCredential.new(
           external_id: webauthn_credential.id,
           nickname: credential_nickname,
