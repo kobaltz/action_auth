@@ -1,11 +1,19 @@
 <h1>Welcome#index</h1>
-
+<% flash.each do |message| %>
+  <%= message %>
+<% end %>
 <h2>Session Information</h2>
 <p><strong>current_session:</strong> <%= current_session.inspect %></p>
 <p><strong>current_user:</strong> <%= current_user.inspect %></p>
 <p><strong>user_signed_in?:</strong> <%= user_signed_in? %></p>
+<p>
+  Unhappy with the service?
+  <%= button_to "Delete Account", action_auth.users_path, method: :delete %>
+</p>
 
 <h2>ActionAuth Configuration</h2>
+Account Deletion Enabled: <%= ActionAuth.configuration.allow_user_deletion? %><br>
+Magic Links Enabled: <%= ActionAuth.configuration.magic_link_enabled? %><br>
 WebAuthn Enabled: <%= ActionAuth.configuration.webauthn_enabled? %>
 
 <h2>Routes</h2>
