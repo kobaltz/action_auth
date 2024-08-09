@@ -20,6 +20,10 @@ module ActionAuth
       password_salt.last(10)
     end
 
+    generates_token_for :magic_token, expires_in: 20.minutes do
+      password_salt.last(10)
+    end
+
     validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
     validates :password, allow_nil: true, length: { minimum: 12 }
 

@@ -18,4 +18,11 @@ ActionAuth::Engine.routes.draw do
 
     resource :webauthn_credential_authentications, only: [:new, :create]
   end
+
+  if ActionAuth.configuration.magic_link_enabled?
+    namespace :magics do
+      resource :sign_ins, only: [:show]
+      resource :requests, only: [:new, :create]
+    end
+  end
 end

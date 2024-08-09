@@ -102,6 +102,7 @@ ActionAuth.configure do |config|
   config.webauthn_origin = "http://localhost:3000" # or "https://example.com"
   config.webauthn_rp_name = Rails.application.class.to_s.deconstantize
   config.verify_email_on_sign_in = true
+  config.magic_link_enabled = true
   config.default_from_email = "from@example.com"
 end
 ```
@@ -124,7 +125,7 @@ These are the planned features for ActionAuth. The ones that are checked off are
 
 ✅ - Passkeys/Hardware Security Keys
 
-⏳ - Magic Links
+✅ - Magic Links
 
 ⏳ - OAuth with Google, Facebook, Github, Twitter, etc.
 
@@ -272,7 +273,7 @@ We can set the user to become a User record instead of an ActionAuth::User recor
 class Current < ActiveSupport::CurrentAttributes
   def user
     return unless ActionAuth::Current.user
-    ActionAuth::Current.user.becomes(User)
+    ActionAuth::Current.user&.becomes(User)
   end
 end
 ```
