@@ -1,0 +1,38 @@
+<div class="relative flex min-h-full shrink-0 justify-center md:px-12 lg:px-0">
+  <div class="relative z-10 flex flex-1 flex-col bg-white px-4 py-10 shadow-2xl sm:justify-center md:flex-none md:px-28">
+    <main class="mx-auto w-full max-w-md sm:px-4 md:w-96 md:max-w-sm md:px-0">
+      <div class="flex">
+        <%= link_to main_app.root_path do %>
+          <%= image_tag "logo_small.png", class: "h-12 w-auto sm:h-16" %>
+        <% end %>
+      </div>
+      <h2 class="mt-20 text-lg font-semibold text-gray-900">Sign in with a Magic Link</h2>
+      <p class="mt-2 text-sm text-gray-700">
+        Don't have an account?
+        <%= link_to "Sign up" , sign_up_path, class: "font-medium text-blue-600 hover:underline" %>
+        today.
+      </p>
+      <p style="color: green"><%= notice %></p>
+      <p style="color: red"><%= alert %></p>
+
+      <%= form_with url: magics_requests_path, html: { class: "mt-10 grid grid-cols-1 gap-y-8"} do |form| %>
+        <div>
+          <%= form.label :email, "Email address", class: "mb-3 block text-sm font-medium text-gray-700" %>
+          <%= form.email_field :email, value: params[:email_hint], required: true, autofocus: true, autocomplete: "email", class: "block w-full appearance-none rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-blue-500 sm:text-sm" %>
+        </div>
+
+        <div>
+          <%= form.submit "Request Magic Link →".html_safe , class: "group inline-flex items-center justify-center rounded-full py-2 px-4 text-sm font-semibold focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 bg-blue-600 text-white hover:text-slate-100 hover:bg-blue-500 active:bg-blue-800 active:text-blue-100 focus-visible:outline-blue-600 w-full" %>
+        </div>
+        <div class="mt-2 text-sm text-gray-700">
+          <%= link_to "Sign Up", sign_up_path, class: "font-medium text-blue-600 hover:underline" %> |
+          <%= link_to "Reset Password" , new_identity_password_reset_path, class: "font-medium text-blue-600 hover:underline" %> |
+          <%= link_to "Verify Email" , identity_email_verification_path, class: "font-medium text-blue-600 hover:underline" %>
+        </div>
+      <% end %>
+    </main>
+  </div>
+  <div class="hidden sm:contents lg:relative lg:block lg:flex-1">
+    <%= image_tag "placeholder.png", class: "absolute inset-0 h-full w-full object-cover" %>
+  </div>
+</div>

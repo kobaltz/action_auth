@@ -1,0 +1,25 @@
+<div class="flex min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8 bg-gray-50">
+  <div class="sm:mx-auto sm:w-full sm:max-w-[480px]">
+    <div class="bg-white px-6 py-12 shadow sm:rounded-lg sm:px-12">
+      <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        <%= image_tag "lock.png", class: "mx-auto h-10 w-auto" %>
+        <h2 class="mt-1 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">Use a passkey to sign in</h2>
+      </div>
+      <%= content_tag :div,
+        id: "webauthn_credential_form",
+        data: {
+          controller: "credential-authenticator",
+          "credential-authenticator-options-value": @options
+        },
+        class: "space-y-6" do %>
+
+        <div class="mt-1 text-center leading-9 tracking-tight text-gray-900">
+          Insert a USB key, if necessary, and tap it.
+        </div>
+      <% end %>
+      <p class="mt-4 text-center text-sm text-gray-500">
+        <%= link_to "Cancel", action_auth.sessions_path, class: "font-semibold leading-6 text-indigo-600 hover:text-indigo-500" %>
+      </p>
+    </div>
+  </div>
+</div>

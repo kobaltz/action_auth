@@ -1,0 +1,180 @@
+<div class="h-full">
+  <div class="min-h-full">
+
+
+    <div class="bg-gray-800 pb-32">
+      <nav class="bg-gray-800">
+        <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+          <div class="border-b border-gray-700">
+            <div class="flex h-16 items-center justify-between px-4 sm:px-0">
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <%= link_to image_tag("logo_small.png", class: "h-8 w-8"), main_app.root_path %>
+                </div>
+                <div class="hidden md:block">
+                  <div class="ml-10 flex items-baseline space-x-4">
+                    <%= link_to "← Back to App", main_app.root_path, class: "text-gray-300 rounded-md px-3 py-2 font-medium" %>
+                  </div>
+                </div>
+              </div>
+              <div class="hidden md:block">
+                <div class="ml-4 flex items-center md:ml-6">
+                  <div data-controller="tailwindui--dropdown" data-action="click@window->tailwindui--dropdown#close" class="relative ml-3">
+                    <div>
+                      <button data-action="tailwindui--dropdown#toggle" type="button" aria-expanded="false" aria-haspopup="true" class="relative rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
+                        <span class="absolute -inset-1.5"></span>
+                        <span class="sr-only">View notifications</span>
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                        </svg>
+                      </button>
+                    </div>
+                    <div data-tailwindui--dropdown-target="menu" class="absolute hidden right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1">
+                      <!-- Active: "bg-gray-100", Not Active: "" -->
+                      <%= content_tag :div, "No Notifications", class: 'block px-4 py-2 text-sm text-gray-700' %>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+              <div class="-mr-2 flex md:hidden">
+                <!-- Mobile menu button -->
+                <button type="button" class="relative inline-flex items-center justify-center rounded-md bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800" role="mobile-nav-toggle" aria-controls="mobile-menu" aria-expanded="false">
+                  <span class="absolute -inset-0.5"></span>
+                  <span class="sr-only">Open main menu</span>
+                  <!-- Menu open: "hidden", Menu closed: "block" -->
+                  <svg class="block h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                  </svg>
+                  <!-- Menu open: "block", Menu closed: "hidden" -->
+                  <svg class="hidden h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Mobile menu, show/hide based on menu state. -->
+        <div class="border-b border-gray-700 hidden md:hidden" id="mobile-menu" role="mobile-nav">
+          <div class="space-y-1 px-2 py-3 sm:px-3">
+            <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" -->
+            <%= link_to "← Back to App", main_app.root_path, class: "text-gray-300 hover:bg-gray-700 hover:text-white" %>
+
+          </div>
+          <div class="border-t border-gray-700 pb-3 pt-4">
+            <div class="flex items-center px-5">
+
+              <div class="ml-3">
+                <div class="text-sm font-medium leading-none text-gray-400"><%= Current.user&.email %></div>
+              </div>
+              <button type="button" class="relative ml-auto flex-shrink-0 rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
+                <span class="absolute -inset-1.5"></span>
+                <span class="sr-only">View notifications</span>
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                </svg>
+              </button>
+            </div>
+            <div class="mt-3 space-y-1 px-2">
+              <%= link_to "Sign Out", user_session_path(Current.session), "data-turbo-method": :delete, class: 'block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white' %>
+            </div>
+          </div>
+        </div>
+      </nav>
+      <header class="py-5">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <h1 class="text-3xl font-bold tracking-tight text-white">
+            Devices & Sessions
+          </h1>
+        </div>
+      </header>
+    </div>
+
+
+
+    <main class="-mt-32">
+      <div class="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
+        <div class="rounded-lg bg-white px-5 py-6 shadow sm:px-6">
+          <% flash.each do |type, msg| %>
+            <%= render partial: "layouts/common/message", locals: { type: type, msg: msg } %>
+          <% end %>
+
+          <h2 class="text-2xl font-bold tracking-tight">Sessions</h2>
+
+          <div class="mt-8 flow-root">
+            <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+              <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                <table class="min-w-full divide-y divide-gray-300">
+                  <thead>
+                    <tr>
+                      <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">User Agent</th>
+                      <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">IP Address</th>
+                      <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Created At</th>
+                      <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"></th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-gray-200">
+                    <% @sessions.each do |session| %>
+                      <%= content_tag :tr, id: dom_id(session) do %>
+                        <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500"><%= tag.span session.user_agent.truncate(96), title: session.user_agent %></td>
+                        <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500" nowrap><%= session.ip_address %></td>
+                        <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500"><%= session.created_at %></td>
+                        <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500"><%= button_to "Log out", session, method: :delete, class: "rounded bg-indigo-50 px-2 py-1 text-xs font-semibold text-indigo-600 shadow-sm hover:bg-indigo-100" %></td>
+                      <% end %>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <% if ActionAuth.configuration.webauthn_enabled? %>
+            <% if current_user.second_factor_enabled? %>
+              <h2 class="text-2xl mt-8 font-bold tracking-tight">Your Security Keys</h2>
+
+              <div class="mt-8 flow-root">
+                <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                  <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                    <table class="min-w-full divide-y divide-gray-300">
+                      <thead>
+                        <tr>
+                          <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">Key</th>
+                          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Registered On</th>
+                          <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"></th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-gray-200">
+                        <% current_user.action_auth_webauthn_credentials.each do |credential| %>
+                          <%= content_tag :tr, id: dom_id(credential) do %>
+                            <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500"><%= credential.nickname %></td>
+                            <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500" nowrap><%= credential.created_at.strftime('%B %d, %Y') %></td>
+                            <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500" nowrap><%= button_to "Delete", credential, method: :delete, class: "rounded bg-indigo-50 px-2 py-1 text-xs font-semibold text-indigo-600 shadow-sm hover:bg-indigo-100" %></td>
+                          <% end %>
+                        <% end %>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <%= button_to("Register new Security Key",
+                              new_webauthn_credential_path,
+                              method: :get,
+                              class: "rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600") %>
+              </div>
+            <% else %>
+              <h2 class="text-2xl mt-8 font-bold tracking-tight">Enable Two-Factor Authentication</h2>
+              <div class="mt-3">
+                <%= link_to "Add a passkey", new_webauthn_credential_path, class: "rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" %>
+              </div>
+            <% end %>
+          <% end %>
+
+
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
