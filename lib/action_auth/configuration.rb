@@ -13,7 +13,7 @@ module ActionAuth
       @webauthn_origin = "http://localhost:3000"
       @webauthn_rp_name = Rails.application.class.to_s.deconstantize
       @verify_email_on_sign_in = true
-      @magic_link_enabled = false
+      @magic_link_enabled = true
       @default_from_email = "from@example.com"
     end
 
