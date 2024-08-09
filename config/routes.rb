@@ -3,12 +3,17 @@ ActionAuth::Engine.routes.draw do
   post "sign_in", to: "sessions#create"
   get  "sign_up", to: "registrations#new"
   post "sign_up", to: "registrations#create"
-  resources :sessions, only: [:index, :show, :destroy]
-  resource  :password, only: [:edit, :update]
+
   namespace :identity do
     resource :email,              only: [:edit, :update]
     resource :email_verification, only: [:show, :create]
     resource :password_reset,     only: [:new, :edit, :create, :update]
+  end
+  resource  :password, only: [:edit, :update]
+  resources :sessions, only: [:index, :show, :destroy]
+
+  if ActionAuth.configuration.allow_user_deletion?
+    resource  :users, only: [:destroy]
   end
 
   if ActionAuth.configuration.webauthn_enabled?

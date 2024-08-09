@@ -98,12 +98,13 @@ settings.
 
 ```ruby
 ActionAuth.configure do |config|
+  config.allow_user_deletion = true
+  config.default_from_email = "from@example.com"
+  config.magic_link_enabled = true
+  config.verify_email_on_sign_in = true
   config.webauthn_enabled = true
   config.webauthn_origin = "http://localhost:3000" # or "https://example.com"
   config.webauthn_rp_name = Rails.application.class.to_s.deconstantize
-  config.verify_email_on_sign_in = true
-  config.magic_link_enabled = true
-  config.default_from_email = "from@example.com"
 end
 ```
 
@@ -129,7 +130,7 @@ These are the planned features for ActionAuth. The ones that are checked off are
 
 ⏳ - OAuth with Google, Facebook, Github, Twitter, etc.
 
-⏳ - Account Deletion
+✅ - Account Deletion
 
 ⏳ - Account Lockout
 
@@ -212,6 +213,29 @@ so users will still need to register their email address and password. Once the 
 they can add a Passkey to their account. The Passkey could be an iCloud Keychain, a hardware security
 key like a Yubikey, or a mobile device. If enabled and configured, the user will be prompted to use
 their Passkey after they log in.
+
+## Magic Links
+
+Magic Links are a way to authenticate a user without requiring a password. This is done by sending
+an email to the user with a link that will log them in. This is a great way to allow users to log in
+without having to remember a password. This is especially useful for users who may not have a password
+manager or have a hard time remembering passwords.
+
+## Account Deletion
+
+Account deletion is a feature that is enabled by default. When a user deletes their account, the account
+is marked as deleted and the user is logged out. The user will no longer be able to log in with their
+email and password. The user will need to create a new account if they wish to continue using the application.
+
+Here's an example of how you may want to add a delete account button to your application. Obviously, you
+will want to style this to fit your application and have some kind of confirmation dialog.
+
+```
+<p>
+  Unhappy with the service?
+  <%= button_to "Delete Account", action_auth.users_path, method: :delete %>
+</p>
+```
 
 #### Configuration
 
