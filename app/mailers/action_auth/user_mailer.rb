@@ -13,5 +13,12 @@ module ActionAuth
 
       mail to: @user.email, subject: "Verify your email"
     end
+
+    def magic_link
+      @user = params[:user]
+      @signed_id = @user.generate_token_for(:magic_token)
+
+      mail to: @user.email, subject: "Sign in to your account"
+    end
   end
 end
