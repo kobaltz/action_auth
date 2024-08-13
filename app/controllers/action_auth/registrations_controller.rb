@@ -1,5 +1,7 @@
 module ActionAuth
   class RegistrationsController < ApplicationController
+    before_action :validate_pwned_password, only: :create
+
     def new
       @user = User.new
     end
@@ -23,12 +25,25 @@ module ActionAuth
     end
 
     private
-      def user_params
-        params.permit(:email, :password, :password_confirmation)
-      end
 
-      def send_email_verification
-        UserMailer.with(user: @user).email_verification.deliver_later
+    def user_params
+      params.permit(:email, :password, :password_confirmation)
+    end
+
+    def send_email_verification
+      UserMailer.with(user: @user).email_verification.deliver_later
+    end
+
+    def validate_pwned_password
+      return unless ActionAuth.configuration.pwned_enabled?
+
+      pwned = Pwned::Password.new(params[:password])
+
+      if pwned.pwned?
+        @user = User.new(email: params[:email])
+        @user.errors.add(:password, "has been pwned #{pwned.pwned_count} times. Please choose a different password.")
+        render :new, status: :unprocessable_entity
       end
+    end
   end
 end

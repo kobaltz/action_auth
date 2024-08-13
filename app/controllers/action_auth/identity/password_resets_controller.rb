@@ -2,6 +2,7 @@ module ActionAuth
   module Identity
     class PasswordResetsController < ApplicationController
       before_action :set_user, only: %i[ edit update ]
+      before_action :validate_pwned_password, only: :update
 
       def new
       end
@@ -40,6 +41,16 @@ module ActionAuth
 
       def send_password_reset_email
         UserMailer.with(user: @user).password_reset.deliver_later
+      end
+
+      def validate_pwned_password
+        return unless ActionAuth.configuration.pwned_enabled?
+
+        pwned = Pwned::Password.new(params[:password])
+        if pwned.pwned?
+          @user.errors.add(:password, "has been pwned #{pwned.pwned_count} times. Please choose a different password.")
+          render :edit, status: :unprocessable_entity
+        end
       end
     end
   end
