@@ -12,7 +12,7 @@ module ActionAuth
     test "should sign up" do
       assert_difference("ActionAuth::User.count") do
         email = "#{SecureRandom.hex}@#{SecureRandom.hex}.com"
-        post sign_up_path, params: { email: email, password: "123456789012", password_confirmation: "123456789012" }
+        post sign_up_path, params: { email: email, password: email, password_confirmation: email }
       end
       assert_response :redirect
     end
@@ -20,7 +20,15 @@ module ActionAuth
     test "should not sign up" do
       assert_no_difference("ActionAuth::User.count") do
         email = "#{SecureRandom.hex}@#{SecureRandom.hex}.com"
-        post sign_up_path, params: { email: email, password: "1234567890AB", password_confirmation: "123456789012" }
+        post sign_up_path, params: { email: email, password: email, password_confirmation: "123456789012" }
+      end
+      assert_response :unprocessable_entity
+    end
+
+    test "should not sign up with pwned password" do
+      assert_no_difference("ActionAuth::User.count") do
+        email = "#{SecureRandom.hex}@#{SecureRandom.hex}.com"
+        post sign_up_path, params: { email: email, password: "Password1234", password_confirmation: "Password1234" }
       end
       assert_response :unprocessable_entity
     end

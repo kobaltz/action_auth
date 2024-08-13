@@ -18,4 +18,7 @@ group :test do
 end
 
 # Add these gems for WebAuthn support
-gem "webauthn", "~> 3.1"
+gem "webauthn"
+
+# Add these gems for pwened password support
+gem "pwned"

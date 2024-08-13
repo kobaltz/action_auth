@@ -14,6 +14,7 @@ module ActionAuth
       @allow_user_deletion = true
       @default_from_email = "from@example.com"
       @magic_link_enabled = true
+      @pwned_enabled = defined?(Pwned)
       @verify_email_on_sign_in = true
       @webauthn_enabled = defined?(WebAuthn)
       @webauthn_origin = "http://localhost:3000"
@@ -21,15 +22,19 @@ module ActionAuth
     end
 
     def allow_user_deletion?
-      @allow_user_deletion.respond_to?(:call) ? @allow_user_deletion.call : @allow_user_deletion
+      @allow_user_deletion == true
     end
 
     def magic_link_enabled?
-      @magic_link_enabled.respond_to?(:call) ? @magic_link_enabled.call : @magic_link_enabled
+      @magic_link_enabled == true
     end
 
     def webauthn_enabled?
       @webauthn_enabled.respond_to?(:call) ? @webauthn_enabled.call : @webauthn_enabled
+    end
+
+    def pwned_enabled?
+      @pwned_enabled.respond_to?(:call) ? @pwned_enabled.call : @pwned_enabled
     end
 
   end

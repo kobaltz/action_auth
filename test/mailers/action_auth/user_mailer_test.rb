@@ -17,5 +17,11 @@ module ActionAuth
       assert_equal "Verify your email", mail.subject
       assert_equal [@user.email], mail.to
     end
+
+    test "magic_link" do
+      mail = ActionAuth::UserMailer.with(user: @user).magic_link
+      assert_equal "Sign in to your account", mail.subject
+      assert_equal [@user.email], mail.to
+    end
   end
 end

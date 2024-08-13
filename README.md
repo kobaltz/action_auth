@@ -15,12 +15,13 @@ user experience akin to that offered by the well-regarded Devise gem.
    - [Routes](#routes)
    - [Helper Methods](#helper-methods)
    - [Restricting and Changing Routes](#restricting-and-changing-routes)
-5. [WebAuthn](#webauthn)
-6. [Within Your Application](#within-your-application)
-7. Customizing
+5. [Have I Been Pwned](#have-i-been-pwned)
+6. [WebAuthn](#webauthn)
+7. [Within Your Application](#within-your-application)
+8. Customizing
    - [Sign In Page](https://github.com/kobaltz/action_auth/wiki/Overriding-Sign-In-page-view)
-7. [License](#license)
-8. [Credits](#credits)
+9. [License](#license)
+10. [Credits](#credits)
 
 ## Breaking Changes
 
@@ -130,6 +131,8 @@ These are the planned features for ActionAuth. The ones that are checked off are
 
 ⏳ - OAuth with Google, Facebook, Github, Twitter, etc.
 
+✅ - Have I Been Pwned Integration
+
 ✅ - Account Deletion
 
 ⏳ - Account Lockout
@@ -206,13 +209,15 @@ versus a user that is not logged in.
     end
     root to: 'welcome#index'
 
-## WebAuthn
+## Have I Been Pwned
 
-ActionAuth's approach for WebAuthn is simplicity. It is used as a multifactor authentication step,
-so users will still need to register their email address and password. Once the user is registered,
-they can add a Passkey to their account. The Passkey could be an iCloud Keychain, a hardware security
-key like a Yubikey, or a mobile device. If enabled and configured, the user will be prompted to use
-their Passkey after they log in.
+[Have I Been Pwned](https://haveibeenpwned.com/) is a way that youre able to check if a password has been compromised in a data breach. This is a great way to ensure that your users are using secure passwords.
+
+Add the `pwned` gem to your Gemfile. That's all you'll have to do to enable this functionality.
+
+```ruby
+bundle add pwned
+```
 
 ## Magic Links
 
@@ -236,6 +241,13 @@ will want to style this to fit your application and have some kind of confirmati
   <%= button_to "Delete Account", action_auth.users_path, method: :delete %>
 </p>
 ```
+## WebAuthn
+
+ActionAuth's approach for WebAuthn is simplicity. It is used as a multifactor authentication step,
+so users will still need to register their email address and password. Once the user is registered,
+they can add a Passkey to their account. The Passkey could be an iCloud Keychain, a hardware security
+key like a Yubikey, or a mobile device. If enabled and configured, the user will be prompted to use
+their Passkey after they log in.
 
 #### Configuration
 

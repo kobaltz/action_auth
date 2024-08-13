@@ -15,18 +15,18 @@
 
   <%= form.hidden_field :sid, value: params[:sid] %>
 
-  <div>
+  <div class="mb-3">
     <%= form.label :password, "New password", style: "display: block" %>
     <%= form.password_field :password, required: true, autofocus: true, autocomplete: "new-password" %>
     <div>12 characters minimum.</div>
   </div>
 
-  <div>
+  <div class="mb-3">
     <%= form.label :password_confirmation, "Confirm new password", style: "display: block" %>
     <%= form.password_field :password_confirmation, required: true, autocomplete: "new-password" %>
   </div>
 
   <div>
-    <%= form.submit "Save changes" %>
+    <%= form.submit "Save changes", class: "btn btn-primary" %>
   </div>
 <% end %>
