@@ -43,7 +43,9 @@ const Credential = {
 
   get: function (credentialOptions) {
     const self = this;
-    const webauthnUrl = document.querySelector('meta[name="webauthn_auth_url"]').getAttribute("content");
+    const webauthnUrlTag = document.querySelector('meta[name="passkey_auth_url"]') ||
+      document.querySelector('meta[name="webauthn_auth_url"]');
+    const webauthnUrl = webauthnUrlTag.getAttribute("content");
     WebAuthnJSON.get({ "publicKey": credentialOptions }).then(function (credential) {
       self.callback(webauthnUrl, credential, "/");
     });

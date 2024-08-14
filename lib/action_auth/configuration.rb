@@ -14,6 +14,7 @@ module ActionAuth
       @allow_user_deletion = true
       @default_from_email = "from@example.com"
       @magic_link_enabled = true
+      @passkey_only = true
       @pwned_enabled = defined?(Pwned)
       @verify_email_on_sign_in = true
       @webauthn_enabled = defined?(WebAuthn)
@@ -27,6 +28,10 @@ module ActionAuth
 
     def magic_link_enabled?
       @magic_link_enabled == true
+    end
+
+    def passkey_only?
+      webauthn_enabled? && @passkey_only == true
     end
 
     def webauthn_enabled?

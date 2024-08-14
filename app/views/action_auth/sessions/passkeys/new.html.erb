@@ -1,0 +1,20 @@
+<h2 class="action-auth--text-center">Use a passkey to sign in</h2>
+<%= tag :meta, name: :passkey_auth_url, content: action_auth.sessions_passkeys_url %>
+
+<%= content_tag :div,
+  id: "webauthn_credential_form",
+  data: {
+    controller: "credential-authenticator",
+    "credential-authenticator-options-value": @options
+  },
+  class: "action-auth--text-center" do %>
+
+  <div class="mb-3 action-auth--text-center">
+    Insert a USB key, if necessary, and tap it.
+    An account with a matching passkey is required.
+  </div>
+<% end %>
+
+<%= content_for :cancel_path do %>
+  <%= link_to "Cancel", action_auth.sign_in_path %>
+<% end %>
