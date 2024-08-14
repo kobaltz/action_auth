@@ -39,6 +39,9 @@
   <% if ActionAuth.configuration.magic_link_enabled? %>
     <%= link_to "Magic Link", new_magics_requests_path %> |
   <% end %>
+  <% if ActionAuth.configuration.passkey_only? %>
+    <%= link_to "Passkey", new_sessions_passkey_path %> |
+  <% end %>
   <%= link_to "Reset Password", new_identity_password_reset_path %>
   <% if ActionAuth.configuration.verify_email_on_sign_in %>
     | <%= link_to "Verify Email", identity_email_verification_path %>

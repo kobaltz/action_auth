@@ -1,4 +1,4 @@
-<h1>Sign up</h1>
+<h1>Request Magic Link</h1>
 
 <%= form_with(url: magics_requests_path) do |form| %>
   <div class="mb-3">
@@ -8,11 +8,16 @@
 
   <div class="mb-3">
     <%= form.submit "Request Magic Link", class: "btn btn-primary" %>
+    <span class="mx-3">or</span>
+    <%= link_to "Sign In", sign_in_path %>
+    <% if ActionAuth.configuration.passkey_only? %>
+      <span class="mx-3">or</span>
+      <%= link_to "Passkey", new_sessions_passkey_path %>
+    <% end %>
   </div>
 <% end %>
 
 <div class="mb-3">
-  <%= link_to "Sign In", sign_in_path %> |
   <%= link_to "Sign Up", sign_up_path %> |
   <%= link_to "Reset Password", new_identity_password_reset_path %>
   <% if ActionAuth.configuration.verify_email_on_sign_in %>

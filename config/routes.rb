@@ -10,6 +10,11 @@ ActionAuth::Engine.routes.draw do
     resource :password_reset,     only: [:new, :edit, :create, :update]
   end
   resource  :password, only: [:edit, :update]
+  namespace :sessions do
+    if ActionAuth.configuration.webauthn_enabled? && ActionAuth.configuration.passkey_only?
+      resources :passkeys, only: [:new, :create]
+    end
+  end
   resources :sessions, only: [:index, :show, :destroy]
 
   if ActionAuth.configuration.allow_user_deletion?
