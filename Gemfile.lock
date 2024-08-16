@@ -1,11 +1,7 @@
 PATH
   remote: .
   specs:
-<<<<<<< HEAD
     action_auth (1.4.1)
-=======
-    action_auth (1.4.0)
->>>>>>> a6dbc62 (v1.4.0)
       bcrypt (~> 3.1.0)
       rails (~> 7.1)
 
