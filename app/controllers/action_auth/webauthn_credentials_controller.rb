@@ -38,7 +38,8 @@ class ActionAuth::WebauthnCredentialsController < ApplicationController
         external_id: webauthn_credential.id,
         nickname: params[:credential_nickname],
         public_key: webauthn_credential.public_key,
-        sign_count: webauthn_credential.sign_count
+        sign_count: webauthn_credential.sign_count,
+        key_type: key_type
       )
 
       if credential.save
@@ -56,5 +57,28 @@ class ActionAuth::WebauthnCredentialsController < ApplicationController
     current_user.webauthn_credentials.destroy(params[:id])
 
     redirect_to sessions_path
+  end
+
+  private
+
+  def key_type
+    transports = params.dig(:response, :transports)
+    return :unknown unless transports.present?
+
+    transport_types = {
+      ["internal", "hybrid"] => :passkey,
+      ["usb", "nfc"] => :hardware,
+      ["bluetooth", "wireless"] => :wireless,
+    }.freeze
+
+    transport_types.each do |keys, type|
+      if transports.is_a?(String)
+        return type if keys.include?(transports)
+      elsif transports.is_a?(Array)
+        return type if (keys & transports).any?
+      end
+    end
+
+    :unknown
   end
 end

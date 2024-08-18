@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_01_14_051355) do
+ActiveRecord::Schema[7.2].define(version: 2024_08_18_032321) do
   create_table "posts", force: :cascade do |t|
     t.integer "user_id", null: false
     t.string "title"
@@ -46,6 +46,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_01_14_051355) do
     t.integer "user_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "key_type", limit: 2, default: 0
     t.index ["external_id"], name: "index_webauthn_credentials_on_external_id", unique: true
     t.index ["user_id"], name: "index_webauthn_credentials_on_user_id"
   end

@@ -10,5 +10,12 @@ module ActionAuth
                 greater_than_or_equal_to: 0,
                 less_than_or_equal_to: 2**32 - 1
               }
+
+    enum :key_type, {
+      unknown: 0,
+      passkey: 1,
+      hardware: 2,
+      wireless: 3
+    }
   end
 end

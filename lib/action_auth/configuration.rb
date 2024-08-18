@@ -4,6 +4,8 @@ module ActionAuth
     attr_accessor :allow_user_deletion
     attr_accessor :default_from_email
     attr_accessor :magic_link_enabled
+    attr_accessor :passkey_only
+    attr_accessor :pwned_enabled
     attr_accessor :verify_email_on_sign_in
     attr_accessor :webauthn_enabled
     attr_accessor :webauthn_origin
