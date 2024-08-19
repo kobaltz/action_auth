@@ -171,3 +171,78 @@ input[type="password"] {
 .action-auth--text-center {
   text-align: center !important;
 }
+
+@media (prefers-color-scheme: dark) {
+  body {
+    color: #d5c4a1;
+    background-color: #282828 !important;
+  }
+
+  .container,
+  .container-fluid {
+    background-color: #3c3836 !important;
+    border-color: #3c3836 !important;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"] {
+    color: #d5c4a1;
+    background-color: #282828;
+    border-color: #3c3836;
+  }
+
+  .btn {
+    color: #fbf1c7;
+    background-color: #d65d0e;
+    border-color: #d65d0e;
+  }
+
+  .btn:hover {
+    background-color: #cc241d;
+    border-color: #cc241d;
+  }
+
+  .btn:focus {
+    box-shadow: 0 0 0 0.25rem rgba(214, 93, 14, .5);
+  }
+
+  .btn:disabled {
+    background-color: #d65d0e;
+    border-color: #d65d0e;
+    color: #fbf1c7;
+  }
+
+  .action-auth--table {
+    background-color: #3c3836;
+    color: #d5c4a1;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  }
+
+  .action-auth--table thead {
+    background-color: #d79921;
+    color: #282828;
+  }
+
+  .action-auth--table th,
+  .action-auth--table td {
+    border-bottom: 1px solid #504945;
+  }
+
+  .action-auth--table tbody tr:hover {
+    background-color: #282828;
+  }
+
+  a {
+    color: #83a598;
+    text-decoration: none;
+  }
+
+  a:visited {
+    color: #d3869b;
+  }
+
+  a:hover {
+    color: #fabd2f;
+  }
+}
