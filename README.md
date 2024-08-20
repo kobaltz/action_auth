@@ -61,6 +61,23 @@ add_foreign_key :nfcs, :users, column: :user_id unless foreign_key_exists?(:nfcs
 ```
 
 ## Installation
+
+### Automatic Installation
+
+Add this line to your application's Gemfile:
+
+```ruby
+bundle add action_auth
+```
+
+Then run the rake task to copy over the migrations, config and routes.
+
+```bash
+bin/rails action_auth:install
+```
+
+### Manual Installation
+
 Add this line to your application's Gemfile:
 
 ```ruby
