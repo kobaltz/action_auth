@@ -22,7 +22,7 @@ module ActionAuth
     end
 
     test "should send magic link to existing user" do
-      existing_user = action_auth_users(:one) # assuming you have a fixture for this
+      existing_user = action_auth_users(:one)
       assert_no_difference('User.count') do
         post magics_requests_url, params: { email: existing_user.email }
       end

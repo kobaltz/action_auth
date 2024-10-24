@@ -20,6 +20,10 @@
       <span class="mx-3">or</span>
       <%= link_to "Magic Link", new_magics_requests_path %>
     <% end %>
+    <% if ActionAuth.configuration.sms_auth_enabled? %>
+      <span class="mx-3">or</span>
+      <%= link_to "SMS Auth", new_sms_auths_requests_path %> |
+    <% end %>
     <% if ActionAuth.configuration.passkey_only? %>
       <span class="mx-3">or</span>
       <%= link_to "Passkey", new_sessions_passkey_path %>

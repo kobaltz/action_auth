@@ -35,4 +35,11 @@ ActionAuth::Engine.routes.draw do
       resource :requests, only: [:new, :create]
     end
   end
+
+  if ActionAuth.configuration.sms_auth_enabled?
+    namespace :sms_auths do
+      resource :sign_ins, only: [:show, :create]
+      resource :requests, only: [:new, :create]
+    end
+  end
 end

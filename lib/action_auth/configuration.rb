@@ -6,6 +6,8 @@ module ActionAuth
     attr_accessor :magic_link_enabled
     attr_accessor :passkey_only
     attr_accessor :pwned_enabled
+    attr_accessor :sms_auth_enabled
+    attr_accessor :sms_send_class
     attr_accessor :verify_email_on_sign_in
     attr_accessor :webauthn_enabled
     attr_accessor :webauthn_origin
@@ -18,6 +20,8 @@ module ActionAuth
       @magic_link_enabled = true
       @passkey_only = true
       @pwned_enabled = defined?(Pwned)
+      @sms_auth_enabled = false
+      @sms_send_class = nil
       @verify_email_on_sign_in = true
       @webauthn_enabled = defined?(WebAuthn)
       @webauthn_origin = "http://localhost:3000"
@@ -30,6 +34,10 @@ module ActionAuth
 
     def magic_link_enabled?
       @magic_link_enabled == true
+    end
+
+    def sms_auth_enabled?
+      @sms_auth_enabled == true
     end
 
     def passkey_only?

@@ -26,7 +26,15 @@ module ActionAuth
 
     validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
     validates :password, allow_nil: true, length: { minimum: 12 }
+    validates :phone_number,
+              allow_nil: true,
+              uniqueness: true,
+              format: {
+                with: /\A\+\d+\z/,
+                message: "must be a valid international phone number with digits only after the country code"
+              }
 
+    normalizes :phone_number, with: -> phone_number { phone_number.gsub(/[^+\d]/, '') }
     normalizes :email, with: -> email { email.strip.downcase }
 
     before_validation if: :email_changed?, on: :update do

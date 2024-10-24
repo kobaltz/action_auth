@@ -23,6 +23,9 @@
           <%= link_to "Sign In" , sign_in_path, class: "font-medium text-blue-600 hover:underline" %> |
           <%= link_to "Sign Up" , sign_up_path, class: "font-medium text-blue-600 hover:underline" %> |
           <%= link_to "Magic Link", new_magics_requests_path, class: "font-medium text-blue-600 hover:underline" %> |
+          <% if ActionAuth.configuration.sms_auth_enabled? %>
+            <%= link_to "SMS Auth", new_sms_auths_requests_path, class: "font-medium text-blue-600 hover:underline" %> |
+          <% end %>
           <%= link_to "Verify Email" , identity_email_verification_path, class: "font-medium text-blue-600 hover:underline" %>
         </div>
       <% end %>

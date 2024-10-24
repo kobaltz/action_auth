@@ -21,6 +21,12 @@ if ActiveSupport::TestCase.respond_to?(:fixture_paths=)
   ActiveSupport::TestCase.fixtures :all
 end
 
+class SmsSender
+  def self.send_code(phone_number, code)
+    true
+  end
+end
+
 class ActionDispatch::IntegrationTest
   include SignInAsHelper
   def create_user_with_credential(email: 'user@example.com',

@@ -1,0 +1,14 @@
+<h1>Verify SMS Code</h1>
+
+<%= form_with(url: sms_auths_sign_ins_path) do |form| %>
+  <%= form.hidden_field :phone_number, value: cookies.signed[:sms_auth_phone_number] %>
+  <div class="mb-3">
+    <%= form.label :sms_code, style: "display: block" %>
+    <%= form.number_field :sms_code, required: true, autofocus: true, autocomplete: "one-time-code" %>
+  </div>
+
+  <div class="mb-3">
+    <%= form.submit "Sign In", class: "btn btn-primary" %>
+  </div>
+<% end %>
+

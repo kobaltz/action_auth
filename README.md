@@ -121,10 +121,17 @@ ActionAuth.configure do |config|
   config.magic_link_enabled = true
   config.passkey_only = true # Allows sign in with only a passkey
   config.pwned_enabled = true # defined?(Pwned)
+  config.sms_auth_enabled = false
   config.verify_email_on_sign_in = true
   config.webauthn_enabled = true # defined?(WebAuthn)
   config.webauthn_origin = "http://localhost:3000" # or "https://example.com"
   config.webauthn_rp_name = Rails.application.class.to_s.deconstantize
+end
+
+Rails.application.config.after_initialize do
+  ActionAuth.configure do |config|
+    config.sms_send_class = SmsSender
+  end
 end
 ```
 
@@ -151,6 +158,8 @@ These are the planned features for ActionAuth. The ones that are checked off are
 ✅ - Magic Links
 
 ⏳ - OAuth with Google, Facebook, Github, Twitter, etc.
+
+✅ - SMS Authentication
 
 ✅ - Have I Been Pwned Integration
 
@@ -244,6 +253,50 @@ Magic Links are a way to authenticate a user without requiring a password. This 
 an email to the user with a link that will log them in. This is a great way to allow users to log in
 without having to remember a password. This is especially useful for users who may not have a password
 manager or have a hard time remembering passwords.
+
+### SMS Authentication
+
+SMS Authentication is disabled by default. The purpose of this is to allow users to authenticate
+with a phone number. This is useful and specific to applications that may require a phone number
+instead of an email address for authentication. The basic workflow for this is to register a phone
+number, and then send a code to the phone number. The user will then enter the code to authenticate.
+
+No password or email is required for this. I do not recommend enabling this feature for most applications.
+
+You must set up your own SMS Provider. This is not included in the gem. You will need to configure the
+`sms_send_class` to send the SMS code. This will expect a class method called `send_code` that will take in the parameters
+`phone_number` and `code`.
+
+```ruby
+require 'twilio-ruby'
+
+class SmsSender
+  def self.send_code(phone_number, code)
+    account_sid = ENV['TWILIO_ACCOUNT_SID']
+    auth_token = ENV['TWILIO_AUTH_TOKEN']
+    from_number = ENV['TWILIO_PHONE_NUMBER']
+
+    client = Twilio::REST::Client.new(account_sid, auth_token)
+
+    client.messages.create(
+      from: from_number,
+      to: phone_number,
+      body: "Your verification code is #{code}"
+    )
+  end
+end
+```
+
+Since this file could live in the `app/models` or elsewhere, we will need to set its configuration after the Rails
+application has been loaded. This can be done in an initializer.
+
+```ruby
+Rails.application.config.after_initialize do
+  ActionAuth.configure do |config|
+    config.sms_send_class = SmsSender
+  end
+end
+```
 
 ## Account Deletion
 

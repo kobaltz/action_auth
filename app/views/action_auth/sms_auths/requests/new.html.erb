@@ -1,0 +1,26 @@
+<h1>Request SMS Code</h1>
+
+<%= form_with(url: sms_auths_requests_path) do |form| %>
+  <div class="mb-3">
+    <%= form.label :phone_number, style: "display: block" %>
+    <%= form.telephone_field :phone_number, required: true, autofocus: true, autocomplete: "mobile" %>
+  </div>
+
+  <div class="mb-3">
+    <%= form.submit "Request SMS Code", class: "btn btn-primary" %>
+    <span class="mx-3">or</span>
+    <%= link_to "Sign In", sign_in_path %>
+    <% if ActionAuth.configuration.passkey_only? %>
+      <span class="mx-3">or</span>
+      <%= link_to "Passkey", new_sessions_passkey_path %>
+    <% end %>
+  </div>
+<% end %>
+
+<div class="mb-3">
+  <%= link_to "Sign Up", sign_up_path %> |
+  <%= link_to "Reset Password", new_identity_password_reset_path %>
+  <% if ActionAuth.configuration.verify_email_on_sign_in %>
+    | <%= link_to "Verify Email", identity_email_verification_path %>
+  <% end %>
+</div>
