@@ -16,12 +16,15 @@ user experience akin to that offered by the well-regarded Devise gem.
    - [Helper Methods](#helper-methods)
    - [Restricting and Changing Routes](#restricting-and-changing-routes)
 5. [Have I Been Pwned](#have-i-been-pwned)
-6. [WebAuthn](#webauthn)
-7. [Within Your Application](#within-your-application)
-8. Customizing
+6. [Magic Links](#magic-links)
+7. [SMS Authentication](#sms-authentication)
+8. [Account Deletion](#account-deletion)
+9. [WebAuthn](#webauthn)
+10. [Within Your Application](#within-your-application)
+11. Customizing
    - [Sign In Page](https://github.com/kobaltz/action_auth/wiki/Overriding-Sign-In-page-view)
-9. [License](#license)
-10. [Credits](#credits)
+12. [License](#license)
+13. [Credits](#credits)
 
 ## Breaking Changes
 
@@ -254,7 +257,7 @@ an email to the user with a link that will log them in. This is a great way to a
 without having to remember a password. This is especially useful for users who may not have a password
 manager or have a hard time remembering passwords.
 
-### SMS Authentication
+## SMS Authentication
 
 SMS Authentication is disabled by default. The purpose of this is to allow users to authenticate
 with a phone number. This is useful and specific to applications that may require a phone number
@@ -313,6 +316,7 @@ will want to style this to fit your application and have some kind of confirmati
   <%= button_to "Delete Account", action_auth.users_path, method: :delete %>
 </p>
 ```
+
 ## WebAuthn
 
 ActionAuth's approach for WebAuthn is simplicity. It is used as a multifactor authentication step,
