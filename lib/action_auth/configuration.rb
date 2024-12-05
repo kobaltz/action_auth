@@ -13,6 +13,7 @@ module ActionAuth
     attr_accessor :webauthn_origin
     attr_accessor :webauthn_rp_name
 
+    attr_accessor :insert_cookie_domain
 
     def initialize
       @allow_user_deletion = true
@@ -26,6 +27,8 @@ module ActionAuth
       @webauthn_enabled = defined?(WebAuthn)
       @webauthn_origin = "http://localhost:3000"
       @webauthn_rp_name = Rails.application.class.to_s.deconstantize
+
+      @insert_cookie_domain = false
     end
 
     def allow_user_deletion?

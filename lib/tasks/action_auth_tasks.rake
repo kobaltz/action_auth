@@ -18,6 +18,7 @@ namespace :action_auth do
           #   config.webauthn_enabled = true # defined?(WebAuthn)
           #   config.webauthn_origin = "http://localhost:3000" # or "https://example.com"
           #   config.webauthn_rp_name = Rails.application.class.to_s.deconstantize
+          #   config.insert_cookie_domain = false
           # end
           #
           # Rails.application.config.after_initialize do

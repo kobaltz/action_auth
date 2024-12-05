@@ -19,7 +19,9 @@ module ActionAuth
         else
           return if check_if_email_is_verified(user)
           @session = user.sessions.create
-          cookies.signed.permanent[:session_token] = { value: @session.id, httponly: true }
+          session_token_hash = { value: @session.id, httponly: true }
+          session_token_hash[:domain] = :all if ActionAuth.configuration.insert_cookie_domain
+          cookies.signed.permanent[:session_token] = session_token_hash
           redirect_to main_app.root_path, notice: "Signed in successfully"
         end
       else
