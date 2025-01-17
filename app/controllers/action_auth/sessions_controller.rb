@@ -32,6 +32,8 @@ module ActionAuth
     def destroy
       session = Current.user.sessions.find(params[:id])
       session.destroy
+      cookies.delete(:session_token)
+      response.headers["Clear-Site-Data"] = '"cache","storage"'
       redirect_to main_app.root_path, notice: "That session has been logged out"
     end
 
