@@ -3,6 +3,12 @@ module ActionAuth
     before_action :set_current_request_details
     before_action :authenticate_user!, only: [:index, :destroy]
 
+    rate_limit to: 5,
+      within: 20.seconds,
+      only: :create,
+      name: "slow-throttle",
+      with: -> { redirect_to sign_in_path, alert: "Try again later." }
+
     def index
       @action_auth_wide = true
       @sessions = Current.user.sessions.order(created_at: :desc)

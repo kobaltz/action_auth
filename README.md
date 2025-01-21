@@ -26,42 +26,11 @@ user experience akin to that offered by the well-regarded Devise gem.
 12. [License](#license)
 13. [Credits](#credits)
 
-## Breaking Changes
 
-With the release of v1.0.0, there are some breaking changes that have been introduced. The
-biggest change is that the `ActionAuth::User` model now uses the table name of `users` instead
-of `action_auth_users`. This was done to make it easier to integrate with your application
-without having to worry about the table name. If you have an existing application that is
-using ActionAuth, you will need to rename the table to `users` with a migration like
+## Minimum Requirements
 
-```ruby
-rename_table :action_auth_users, :users
-```
-
-Coming from `v0.3.0` to `v1.0.0`, you will need to create a migration to rename the table and foreign keys.
-
-```ruby
-class UpgradeActionAuth < ActiveRecord::Migration[7.1]
-  def change
-    rename_table :action_auth_users, :users
-
-    rename_table :action_auth_sessions, :sessions
-    rename_column :sessions, :action_auth_user_id, :user_id
-
-    rename_table :action_auth_webauthn_credentials, :webauthn_credentials
-    rename_column :webauthn_credentials, :action_auth_user_id, :user_id
-  end
-end
-```
-
-You will then need to undo the migrations where the foreign keys were added in cases where `foreign_key: true` was
-changed to `foreign_key: { to_table: 'action_auth_users' }`. You can do this for each table with a migration like:
-
-```ruby
-add_foreign_key :user_settings, :users, column: :user_id unless foreign_key_exists?(:user_settings, :users)
-add_foreign_key :profiles, :users, column: :user_id unless foreign_key_exists?(:profiles, :users)
-add_foreign_key :nfcs, :users, column: :user_id unless foreign_key_exists?(:nfcs, :users)
-```
+- Ruby 3.3.0 or later recommended
+- Rails 7.2.0 or later **required**
 
 ## Installation
 
