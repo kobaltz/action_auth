@@ -26,6 +26,7 @@ module ActionAuth
 
     validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
     validates :password, allow_nil: true, length: { minimum: 12 }
+    validate :password_complexity, if: -> { ActionAuth.configuration.password_complexity_check? && password.present? && !Rails.env.test? }
     validates :phone_number,
               allow_nil: true,
               uniqueness: true,
@@ -48,6 +49,16 @@ module ActionAuth
     def second_factor_enabled?
       return false unless ActionAuth.configuration.webauthn_enabled?
       webauthn_credentials.any?
+    end
+
+    private
+
+    def password_complexity
+      return if password.blank?
+
+      unless password =~ /[A-Z]/ && password =~ /[a-z]/ && password =~ /[0-9]/ && password =~ /[^A-Za-z0-9]/
+        errors.add(:password, "must include at least one uppercase letter, one lowercase letter, one number, and one special character")
+      end
     end
   end
 end

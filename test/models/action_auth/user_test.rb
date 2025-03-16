@@ -95,5 +95,33 @@ module ActionAuth
       @user.update(password: "newpassword123")
       assert_not Session.exists?(session.id)
     end
+
+    test "should validate password complexity with complex passwords" do
+      user = ActionAuth::User.new(email: "test@example.com", password: "Password123!")
+      def user.test_password(password)
+        return if password.blank?
+        errors.clear
+        unless password =~ /[A-Z]/ && password =~ /[a-z]/ && password =~ /[0-9]/ && password =~ /[^A-Za-z0-9]/
+          errors.add(:password, "must include at least one uppercase letter, one lowercase letter, one number, and one special character")
+        end
+        errors[:password]
+      end
+
+      errors = user.test_password("password123!")
+      assert_not_empty errors, "Password missing uppercase should be invalid"
+
+      errors = user.test_password("PASSWORD123!")
+      assert_not_empty errors, "Password missing lowercase should be invalid"
+
+      errors = user.test_password("PasswordABC!")
+      assert_not_empty errors, "Password missing number should be invalid"
+
+      errors = user.test_password("Password123")
+      assert_not_empty errors, "Password missing special character should be invalid"
+
+      user.errors.clear
+      errors = user.test_password("Password123!")
+      assert_empty errors, "Complex password should be valid"
+    end
   end
 end

@@ -26,6 +26,8 @@ module ActionAuth
           return if check_if_email_is_verified(user)
           @session = user.sessions.create
           session_token_hash = { value: @session.id, httponly: true }
+          session_token_hash[:secure] = Rails.env.production? if Rails.env.production?
+          session_token_hash[:same_site] = :lax unless Rails.env.test?
           session_token_hash[:domain] = :all if ActionAuth.configuration.insert_cookie_domain
           cookies.signed.permanent[:session_token] = session_token_hash
           redirect_to main_app.root_path, notice: "Signed in successfully"
@@ -38,7 +40,10 @@ module ActionAuth
     def destroy
       session = Current.user.sessions.find(params[:id])
       session.destroy
-      cookies.delete(:session_token)
+      cookie_options = {}
+      cookie_options[:secure] = Rails.env.production? if Rails.env.production?
+      cookie_options[:same_site] = :lax unless Rails.env.test?
+      cookies.delete(:session_token, cookie_options)
       response.headers["Clear-Site-Data"] = '"cache","storage"'
       redirect_to main_app.root_path, notice: "That session has been logged out"
     end

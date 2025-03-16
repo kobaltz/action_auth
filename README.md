@@ -11,20 +11,25 @@ user experience akin to that offered by the well-regarded Devise gem.
 1. [Introduction](#introduction)
 2. [Installation](#installation)
 3. [Features](#features)
-4. [Usage](#usage)
+4. [Security Features](#security-features)
+   - [Password Security](#password-security)
+   - [Session Security](#session-security)
+   - [Rate Limiting](#rate-limiting)
+   - [Multi-Factor Authentication](#multi-factor-authentication)
+5. [Usage](#usage)
    - [Routes](#routes)
    - [Helper Methods](#helper-methods)
    - [Restricting and Changing Routes](#restricting-and-changing-routes)
-5. [Have I Been Pwned](#have-i-been-pwned)
-6. [Magic Links](#magic-links)
-7. [SMS Authentication](#sms-authentication)
-8. [Account Deletion](#account-deletion)
-9. [WebAuthn](#webauthn)
-10. [Within Your Application](#within-your-application)
-11. Customizing
+6. [Have I Been Pwned](#have-i-been-pwned)
+7. [Magic Links](#magic-links)
+8. [SMS Authentication](#sms-authentication)
+9. [Account Deletion](#account-deletion)
+10. [WebAuthn](#webauthn)
+11. [Within Your Application](#within-your-application)
+12. Customizing
    - [Sign In Page](https://github.com/kobaltz/action_auth/wiki/Overriding-Sign-In-page-view)
-12. [License](#license)
-13. [Credits](#credits)
+13. [License](#license)
+14. [Credits](#credits)
 
 
 ## Minimum Requirements
@@ -93,6 +98,8 @@ ActionAuth.configure do |config|
   config.magic_link_enabled = true
   config.passkey_only = true # Allows sign in with only a passkey
   config.pwned_enabled = true # defined?(Pwned)
+  config.password_complexity_check = true # Requires complex passwords
+  config.session_timeout = 2.weeks # Session expires after this period of inactivity
   config.sms_auth_enabled = false
   config.verify_email_on_sign_in = true
   config.webauthn_enabled = true # defined?(WebAuthn)
@@ -139,11 +146,62 @@ These are the planned features for ActionAuth. The ones that are checked off are
 
 ✅ - Account Deletion
 
+✅ - Password Complexity Validation
+
+✅ - Rate Limiting
+
+✅ - Session Timeout
+
+✅ - HTTPS-only cookies in production
+
 ⏳ - Account Lockout
 
 ⏳ - Account Suspension
 
 ⏳ - Account Impersonation
+
+## Security Features
+
+ActionAuth comes with a robust set of security features designed to protect user accounts and data:
+
+### Password Security
+- Minimum password length of 12 characters
+- Password complexity validation requiring uppercase, lowercase, numbers, and special characters
+- Integration with Have I Been Pwned to check for compromised passwords
+- Password complexity validation can be configured to suit your application's needs
+
+### Session Security
+- Session timeout with configurable duration (default: 2 weeks)
+- Automatic session invalidation on password change
+- HTTPS-only cookies in production environments
+- HttpOnly flag on cookies to prevent JavaScript access
+- SameSite=Lax attribute to prevent CSRF attacks
+- IP address and user agent tracking to detect session hijacking
+- Suspicious activity detection for changed IP/user agent
+
+### Rate Limiting
+- Protection against brute force attacks on login
+- Rate limiting on registration attempts
+- Rate limiting on password reset attempts
+- Rate limiting on WebAuthn authentication
+
+### Multi-Factor Authentication
+- Support for WebAuthn/passkeys as a second factor
+- Modern security key and biometric authentication support
+- Magic link authentication as an alternative authentication method
+
+### Configuration Options
+```ruby
+ActionAuth.configure do |config|
+  # Enable password complexity validation
+  config.password_complexity_check = true
+
+  # Set session timeout (defaults to 2 weeks)
+  config.session_timeout = 2.weeks
+
+  # Other settings as needed...
+end
+```
 
 ## Usage
 

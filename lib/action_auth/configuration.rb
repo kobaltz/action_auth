@@ -12,21 +12,25 @@ module ActionAuth
     attr_accessor :webauthn_enabled
     attr_accessor :webauthn_origin
     attr_accessor :webauthn_rp_name
+    attr_accessor :password_complexity_check
+    attr_accessor :session_timeout
 
     attr_accessor :insert_cookie_domain
 
     def initialize
       @allow_user_deletion = true
-      @default_from_email = "from@example.com"
+      @default_from_email = Rails.application.config.action_mailer.default_options&.dig(:from) || "noreply@#{ENV['HOST'] || 'example.com'}"
       @magic_link_enabled = true
       @passkey_only = true
       @pwned_enabled = defined?(Pwned)
+      @password_complexity_check = true
       @sms_auth_enabled = false
       @sms_send_class = nil
       @verify_email_on_sign_in = true
       @webauthn_enabled = defined?(WebAuthn)
-      @webauthn_origin = "http://localhost:3000"
+      @webauthn_origin = Rails.env.production? ? "https://#{ENV['HOST']}" : "http://localhost:3000"
       @webauthn_rp_name = Rails.application.class.to_s.deconstantize
+      @session_timeout = 2.weeks
 
       @insert_cookie_domain = false
     end
@@ -53,6 +57,10 @@ module ActionAuth
 
     def pwned_enabled?
       @pwned_enabled.respond_to?(:call) ? @pwned_enabled.call : @pwned_enabled
+    end
+
+    def password_complexity_check?
+      @password_complexity_check == true
     end
 
   end

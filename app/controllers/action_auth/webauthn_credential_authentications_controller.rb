@@ -3,6 +3,12 @@ class ActionAuth::WebauthnCredentialAuthenticationsController < ApplicationContr
   before_action :ensure_login_initiated
   layout "action_auth/application"
 
+  rate_limit to: 5,
+    within: 20.seconds,
+    only: :create,
+    name: "webauthn-throttle",
+    with: -> { redirect_to sign_in_path, alert: "Too many attempts. Try again later." }
+
   def new
     get_options = WebAuthn::Credential.options_for_get(allow: user.webauthn_credentials.pluck(:external_id))
     session[:current_challenge] = get_options.challenge
@@ -24,7 +30,10 @@ class ActionAuth::WebauthnCredentialAuthenticationsController < ApplicationContr
       credential.update!(sign_count: webauthn_credential.sign_count)
       session.delete(:webauthn_user_id)
       session = user.sessions.create
-      cookies.signed.permanent[:session_token] = { value: session.id, httponly: true }
+      cookie_options = { value: session.id, httponly: true }
+      cookie_options[:secure] = Rails.env.production? if Rails.env.production?
+      cookie_options[:same_site] = :lax unless Rails.env.test?
+      cookies.signed.permanent[:session_token] = cookie_options
       render json: { status: "ok" }, status: :ok
     rescue WebAuthn::Error => e
       Rails.logger.error "❌ Verification failed: #{e.message}"
