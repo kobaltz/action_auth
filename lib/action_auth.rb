@@ -20,7 +20,11 @@ module ActionAuth
       return unless defined?(WebAuthn)
 
       WebAuthn.configure do |config|
-        config.origin = configuration.webauthn_origin
+        config.allowed_origins = if configuration.webauthn_origin.is_a?(Array)
+          configuration.webauthn_origin
+        else
+          [configuration.webauthn_origin]
+        end
         config.rp_name = configuration.webauthn_rp_name
       end
     end
