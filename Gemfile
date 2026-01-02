@@ -15,6 +15,7 @@ end
 group :test do
   gem "simplecov", require: false
   gem "minitest-stub_any_instance"
+  gem "minitest", "< 6.0"
 end
 
 # Add these gems for WebAuthn support
