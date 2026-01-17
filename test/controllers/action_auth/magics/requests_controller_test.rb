@@ -21,6 +21,14 @@ module ActionAuth
       assert_redirected_to sign_in_path
     end
 
+    test "should create user with password meeting complexity requirements" do
+      post magics_requests_url, params: { email: 'complexpassword@example.com' }
+
+      user = User.find_by(email: 'complexpassword@example.com')
+      assert_not_nil user
+      assert_not_nil user.password_digest, "User should have a password set"
+    end
+
     test "should send magic link to existing user" do
       existing_user = action_auth_users(:one)
       assert_no_difference('User.count') do

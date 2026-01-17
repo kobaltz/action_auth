@@ -6,7 +6,7 @@ module ActionAuth
     def create
       user = User.find_or_initialize_by(email: params[:email])
       if user.new_record?
-        password = SecureRandom.hex(32)
+        password = generate_compliant_password
         user.password = password
         user.password_confirmation = password
         user.save!

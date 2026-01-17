@@ -6,7 +6,7 @@ module ActionAuth
     def create
       @user = User.find_or_initialize_by(phone_number: params[:phone_number])
       if @user.new_record?
-        password = SecureRandom.hex(32)
+        password = generate_compliant_password
 
         @user.email = "#{SecureRandom.hex(32)}@smsauth"
         @user.password = password
