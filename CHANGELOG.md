@@ -9,6 +9,8 @@ This release fixes serious security problems. **Everyone should upgrade**, espec
 - **Passkey sign in didn't verify anything.** `Sessions::PasskeysController#create` looked up the credential ID and signed in as its owner without checking the signature or the challenge. Anyone who had a credential ID could sign in as that user. It's on by default when the `webauthn` gem is installed. It now verifies the signature, the challenge, the sign count and that the user was verified on the device.
 - **SMS sign in could be used to take over other accounts.** A request with no phone number matched the first account without one, which set a code on that account and let the code be used to sign in to it. A request could also send `sms_code[]=` with a list of codes to try them all at once. Both are fixed. SMS authentication is off by default.
 - **Magic links and SMS codes skipped the security key.** Accounts with a security key now have to use it after either one, as they do after a password.
+- **Magic links could be used more than once.** A link worked as many times as anyone liked for 20 minutes, so one found in a mailbox, a forwarded email or a log could still sign in. A link now works once, even if it's clicked twice at the same moment, and using one uses up any others sent to that account. Opening a link now shows a page with a "Sign in" button, so mail scanners that open links don't use them up. Links also stop working when the account's email changes. Before, a link sent to the old address could still sign in and mark the new address as verified.
+- **Deleting an account didn't ask for the password.** Anyone with access to a signed in browser could delete the account. It now requires the current password, with guesses limited per session. An account created through SMS has no password it could know, so it has to have signed in with a new code in the last 10 minutes instead.
 - **WebAuthn challenges could be reused.** They're now used up on the first attempt, which matters most for synced passkeys, since they always report a sign count of 0 and that check can't catch a replay.
 - **Session cookies were inconsistent.** Magic link, SMS and passkey sign ins left out the `secure` flag and ignored `insert_cookie_domain`, and most other paths ignored `insert_cookie_domain` too. Every path now sets the cookie in the same way. It's also `secure` on any HTTPS request, not only in production.
 - **The password reset form revealed who has an account.** It now gives the same answer for every address.
@@ -36,6 +38,7 @@ This release fixes serious security problems. **Everyone should upgrade**, espec
 - `pwned_enabled` and `webauthn_enabled` being set without the gem installed no longer raises an error.
 - User agents over 255 characters no longer fail sign in on MySQL.
 - `session_timeout = nil` turns off session expiry instead of raising an error.
+- `bin/rails action_auth:install` added a second `mount` to an app whose existing one was written differently, such as at another path, which stopped the app from booting. It now leaves any existing mount alone.
 - The gemspec said Rails 7.1 was supported, but `rate_limit` needs 7.2. It now says `>= 7.2`, and CI tests 7.2, 8.0 and 8.1.
 
 ### Added
@@ -57,6 +60,17 @@ This release fixes serious security problems. **Everyone should upgrade**, espec
 
 ### Upgrading
 
+See [Upgrading](README.md#upgrading) in the README for the commands to run and the settings you can add.
+
+- **There's a new migration.** Run this, or magic link requests will raise an error telling you to:
+
+  ```bash
+  bin/rails action_auth:install:migrations
+  bin/rails db:migrate
+  ```
+
+- **Your delete account button needs a password field.** If you used the `button_to` from the README, it will now send people to the management screen with a message instead of deleting the account. That screen has a working form, so you can link to it instead, or see [Account Deletion](README.md#account-deletion) for a form to use.
+- **Magic links now take a second click**, on the "Sign in" button. Links in emails sent before you upgrade stop working, so those people will need to request a new one. If you test the flow, `POST` the token to `magics_sign_ins_path` instead of opening the link. To restyle the new page, override `magics/sign_ins/show`.
 - **Your test suite may need a change.** Password complexity, session timeouts and `same_site` used to be skipped when `Rails.env.test?`. If your tests create users with simple passwords, turn the check off in your test environment, or use stronger passwords:
 
   ```ruby

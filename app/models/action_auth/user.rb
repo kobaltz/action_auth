@@ -2,6 +2,8 @@ module ActionAuth
   class User < ApplicationRecord
     self.table_name = "users"
 
+    SMS_EMAIL_SUFFIX = "@smsauth".freeze
+
     has_secure_password
 
     has_many :sessions, dependent: :destroy,
@@ -21,7 +23,7 @@ module ActionAuth
     end
 
     generates_token_for :magic_token, expires_in: 20.minutes do
-      password_salt.last(10)
+      [password_salt.last(10), email, magic_link_used_at]
     end
 
     validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
@@ -49,6 +51,25 @@ module ActionAuth
     def second_factor_enabled?
       return false unless ActionAuth.configuration.webauthn_enabled?
       webauthn_credentials.any?
+    end
+
+    # Uses up every magic link sent so far, since their tokens include this value.
+    # Returns false to all but one of several simultaneous clicks: the update only
+    # matches if nobody has changed the value since this record was loaded. Holding
+    # a link also proves the email address is theirs.
+    def claim_magic_link
+      now = Time.current
+      claimed = self.class.where(id: id, magic_link_used_at: magic_link_used_at)
+        .update_all(magic_link_used_at: now, verified: true, updated_at: now)
+
+      reload if claimed == 1
+      claimed == 1
+    end
+
+    # An account made by signing in with SMS has a random password and a placeholder
+    # email address, so nobody can know that password or reset it.
+    def password_usable?
+      !email.end_with?(SMS_EMAIL_SUFFIX)
     end
 
     private

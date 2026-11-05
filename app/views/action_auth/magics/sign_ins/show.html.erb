@@ -1,0 +1,7 @@
+<%= render "action_auth/shared/flash" %>
+
+<h1>Sign in</h1>
+
+<p>You're signing in as <strong><%= @user.email %></strong>. This link only works once.</p>
+
+<%= button_to "Sign in", magics_sign_ins_path, params: { token: params[:token] }, class: "btn btn-primary" %>

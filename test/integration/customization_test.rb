@@ -220,7 +220,7 @@ class CustomizationTest < ActionDispatch::IntegrationTest
     assert_select "h2", "Account"
     assert_select "a[href=?]", action_auth.edit_identity_email_path
     assert_select "a[href=?]", action_auth.edit_password_path
-    assert_select "form[action=?]", action_auth.users_path
+    assert_select "form[action=?] input[name=password_challenge]", action_auth.users_path
 
     with_action_auth_config(allow_user_deletion: false, webauthn_enabled: false) do
       get action_auth.sessions_path

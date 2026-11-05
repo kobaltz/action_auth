@@ -17,7 +17,7 @@ module ActionAuth
       @user = User.find_or_initialize_by(phone_number: string_param(:phone_number))
 
       if @user.new_record?
-        @user.email = "#{SecureRandom.hex(32)}@smsauth"
+        @user.email = "#{SecureRandom.hex(32)}#{User::SMS_EMAIL_SUFFIX}"
         @user.password = @user.password_confirmation = generate_compliant_password
         @user.verified = false
 

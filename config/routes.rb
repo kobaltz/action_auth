@@ -31,7 +31,7 @@ ActionAuth::Engine.routes.draw do
 
   if ActionAuth.configuration.magic_link_enabled?
     namespace :magics do
-      resource :sign_ins, only: [:show]
+      resource :sign_ins, only: [:show, :create]
       resource :requests, only: [:new, :create]
     end
   end

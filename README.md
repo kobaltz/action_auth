@@ -10,25 +10,26 @@ user experience akin to that offered by the well-regarded Devise gem.
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Installation](#installation)
-3. [Features](#features)
-4. [Security Features](#security-features)
+3. [Upgrading](#upgrading)
+4. [Features](#features)
+5. [Security Features](#security-features)
    - [Password Security](#password-security)
    - [Session Security](#session-security)
    - [Rate Limiting](#rate-limiting)
    - [Multi-Factor Authentication](#multi-factor-authentication)
-5. [Usage](#usage)
+6. [Usage](#usage)
    - [Routes](#routes)
    - [Helper Methods](#helper-methods)
    - [Restricting and Changing Routes](#restricting-and-changing-routes)
-6. [Have I Been Pwned](#have-i-been-pwned)
-7. [Magic Links](#magic-links)
-8. [SMS Authentication](#sms-authentication)
-9. [Account Deletion](#account-deletion)
-10. [WebAuthn](#webauthn)
-11. [Within Your Application](#within-your-application)
-12. [Customizing](#customizing)
-13. [License](#license)
-14. [Credits](#credits)
+7. [Have I Been Pwned](#have-i-been-pwned)
+8. [Magic Links](#magic-links)
+9. [SMS Authentication](#sms-authentication)
+10. [Account Deletion](#account-deletion)
+11. [WebAuthn](#webauthn)
+12. [Within Your Application](#within-your-application)
+13. [Customizing](#customizing)
+14. [License](#license)
+15. [Credits](#credits)
 
 
 ## Minimum Requirements
@@ -113,6 +114,79 @@ Rails.application.config.after_initialize do
   end
 end
 ```
+
+## Upgrading
+
+### Every upgrade
+
+Update the gem, then copy and run any new migrations:
+
+```bash
+bundle update action_auth
+bin/rails action_auth:install:migrations
+bin/rails db:migrate
+```
+
+`action_auth:install:migrations` only copies migrations your app doesn't have yet. It's safe to run on every
+upgrade, and prints nothing when there's nothing new.
+
+You don't need to run `bin/rails action_auth:install` again, though it's safe to. It leaves your initializer and
+your `mount` line alone.
+
+Then check the [changelog](CHANGELOG.md) for anything else that needs a change in your app.
+
+### New settings
+
+Upgrading never changes `config/initializers/action_auth.rb`, so that file won't list settings added after you
+installed. Every setting has a default, which means your app keeps working without them. Only add one if you
+want something other than its default:
+
+```ruby
+# config/initializers/action_auth.rb
+ActionAuth.configure do |config|
+  config.layout = "application"
+  config.session_timeout = 1.week
+end
+```
+
+If your file is still all comments, as `action_auth:install` generates it, also uncomment the
+`ActionAuth.configure do |config|` and `end` lines, or your settings won't take effect.
+
+These settings were added in 1.7.0 or later:
+
+| Setting | Added in | Default | What it does |
+| --- | --- | --- | --- |
+| `layout` | After 1.8.9 | `nil` (ActionAuth's layout) | The layout for ActionAuth's screens. See [Customizing](#customizing). |
+| `parent_controller` | After 1.8.9 | `"ActionController::Base"` | What ActionAuth's controllers inherit from. Use `"ApplicationController"` if your layout calls your app's helpers. Set it in the `ActionAuth.configure` block, not in `after_initialize`. |
+| `after_sign_in_path` | After 1.8.9 | `nil` (your root path) | Where people go after signing in. A path or a Proc. |
+| `after_sign_out_path` | After 1.8.9 | `nil` (your root path) | Where people go after signing out. A path or a Proc. |
+| `password_complexity_check` | 1.8.0 | `true` | Requires new passwords to mix upper and lower case letters, numbers and special characters. |
+| `session_timeout` | 1.8.0 | `2.weeks` | How long a session can go unused before it expires. `nil` turns this off. |
+| `insert_cookie_domain` | 1.7.1 | `false` | Shares the session cookie across subdomains. |
+| `sms_auth_enabled` | 1.7.0 | `false` | Turns on [SMS Authentication](#sms-authentication). |
+| `sms_send_class` | 1.7.0 | `nil` | The class that sends SMS codes. Set it in an `after_initialize` block. |
+
+### From 1.8.9 or earlier
+
+No new settings are required, but these may need something from you:
+
+- **Rails 7.2 or later is required.**
+- **There's a new migration**, which adds `users.magic_link_used_at`. Run it as part of your deploy, before the
+  new code takes requests. Until it has run, requesting a magic link raises an error that tells you to run it.
+- **Your tests may need a setting.** Password complexity is no longer skipped in the test environment. If your
+  tests create users with simple passwords, add this to your initializer, or use stronger passwords:
+
+  ```ruby
+  config.password_complexity_check = !Rails.env.test?
+  ```
+
+- **Your delete account button may need a password field.** A `button_to` copied from an earlier version of this
+  README no longer deletes the account. See [Account Deletion](#account-deletion) for a form to use.
+- **Rate limits need a working cache.** They use `config.cache_store`, and `:null_store` turns them off. With
+  several server processes, use a shared store such as Solid Cache or Redis.
+
+If you've copied views or a layout into your app, or have your own WebAuthn JavaScript, the
+[changelog](CHANGELOG.md#upgrading) lists what to change, along with the other changes in this release.
 
 ## Features
 
@@ -289,6 +363,10 @@ an email to the user with a link that will log them in. This is a great way to a
 without having to remember a password. This is especially useful for users who may not have a password
 manager or have a hard time remembering passwords.
 
+A link expires after 20 minutes and only works once. Using one also uses up any others already sent to that
+account. Opening a link shows a page with a "Sign in" button rather than signing in straight away, because
+mail scanners and link previews open the links in an email and would otherwise use them up first.
+
 ## SMS Authentication
 
 SMS Authentication is disabled by default. The purpose of this is to allow users to authenticate
@@ -339,16 +417,23 @@ Account deletion is a feature that is enabled by default. When a user deletes th
 and its sessions and security keys are permanently deleted, and the user is logged out. The user will need
 to create a new account if they wish to continue using the application.
 
-The management screen at `user_sessions_path` includes a button for this. Here's an example of how you may
-want to add one somewhere else in your application. Obviously, you will want to style this to fit your
-application and have some kind of confirmation dialog.
+Deleting an account requires the current password. The management screen at `user_sessions_path` includes a
+form for this, so the simplest option is to link there. Here's an example of how you may want to add the form
+somewhere else in your application. Obviously, you will want to style this to fit your application.
 
 ```
-<p>
-  Unhappy with the service?
-  <%= button_to "Delete Account", action_auth.users_path, method: :delete %>
-</p>
+<%= form_with url: action_auth.users_path, method: :delete do |form| %>
+  <p>Unhappy with the service?</p>
+  <%= form.label :password_challenge, "Current password" %>
+  <%= form.password_field :password_challenge, required: true, autocomplete: "current-password" %>
+  <%= form.submit "Delete Account" %>
+<% end %>
 ```
+
+If the password is missing or wrong, the account is kept and the user is sent to the management screen with a
+message. An account that signed in with a magic link has a random password, so it has to reset the password
+first. An account created through SMS has no password or email to reset, so instead it can delete itself within
+10 minutes of signing in with a new SMS code. It doesn't need the password field.
 
 ## WebAuthn
 
@@ -508,7 +593,7 @@ bin/rails generate action_auth:views sessions --layout     # Also the default la
     registrations				Sign up
     passwords				Change password
     identity				Change email, verify email and reset password
-    magics					Request a magic link
+    magics					Request and confirm a magic link
     sms_auths				Request and enter an SMS code
     webauthn_credentials			Add a security key
     webauthn_credential_authentications	Use a security key while signing in

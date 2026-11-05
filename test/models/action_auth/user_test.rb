@@ -186,5 +186,60 @@ module ActionAuth
       assert_nil User.find_by_token_for(:magic_token, magic)
       assert_nil User.find_by_token_for(:password_reset, reset)
     end
+
+    test "claiming a magic link uses it up and verifies the email" do
+      user = action_auth_users(:one)
+      user.update!(verified: false)
+      token = user.generate_token_for(:magic_token)
+
+      assert user.claim_magic_link
+
+      assert user.verified
+      assert_not_nil user.magic_link_used_at
+      assert_nil User.find_by_token_for(:magic_token, token)
+    end
+
+    test "only one of two simultaneous clicks claims a magic link" do
+      token = action_auth_users(:one).generate_token_for(:magic_token)
+      first_click = User.find_by_token_for(:magic_token, token)
+      second_click = User.find_by_token_for(:magic_token, token)
+
+      assert first_click.claim_magic_link
+      assert_not second_click.claim_magic_link
+    end
+
+    test "only one of two simultaneous clicks claims a later magic link either" do
+      action_auth_users(:one).claim_magic_link
+      travel 1.minute
+
+      token = action_auth_users(:one).reload.generate_token_for(:magic_token)
+      first_click = User.find_by_token_for(:magic_token, token)
+      second_click = User.find_by_token_for(:magic_token, token)
+
+      assert first_click.claim_magic_link
+      assert_not second_click.claim_magic_link
+    end
+
+    test "claiming a magic link leaves other accounts alone" do
+      other = action_auth_users(:two)
+      token = other.generate_token_for(:magic_token)
+
+      action_auth_users(:one).claim_magic_link
+
+      assert_equal other, User.find_by_token_for(:magic_token, token)
+    end
+
+    test "a claim doesn't need the account to pass validation" do
+      user = action_auth_users(:one)
+      user.update_column(:email, "not an email address")
+
+      assert user.reload.claim_magic_link
+    end
+
+    test "the password only counts as usable when it could be known" do
+      assert action_auth_users(:one).password_usable?
+
+      assert_not User.new(email: "abc#{User::SMS_EMAIL_SUFFIX}").password_usable?
+    end
   end
 end

@@ -8,6 +8,20 @@
   <details class="mb-3">
     <summary>Delete account</summary>
     <p>This permanently deletes your account and signs you out everywhere. It can't be undone.</p>
-    <%= button_to "Permanently delete my account", users_path, method: :delete, class: "btn btn-danger" %>
+
+    <% if ActionAuth::Current.user.password_usable? %>
+      <%= form_with(url: users_path, method: :delete) do |form| %>
+        <div class="mb-3">
+          <%= form.label :password_challenge, "Current password", style: "display: block" %>
+          <%= form.password_field :password_challenge, required: true, autocomplete: "current-password" %>
+          <div>Don't know your password? <%= link_to "Reset it", new_identity_password_reset_path %> first.</div>
+        </div>
+
+        <%= form.submit "Permanently delete my account", class: "btn btn-danger" %>
+      <% end %>
+    <% else %>
+      <p>To confirm it's you, this only works within 10 minutes of signing in with a new SMS code.</p>
+      <%= button_to "Permanently delete my account", users_path, method: :delete, class: "btn btn-danger" %>
+    <% end %>
   </details>
 <% end %>

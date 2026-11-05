@@ -21,7 +21,7 @@ class SessionCookieTest < ActionDispatch::IntegrationTest
   end
 
   def sign_in_with_magic_link
-    get action_auth.magics_sign_ins_path(token: @user.generate_token_for(:magic_token))
+    post action_auth.magics_sign_ins_path, params: { token: @user.generate_token_for(:magic_token) }
   end
 
   def sign_in_with_sms

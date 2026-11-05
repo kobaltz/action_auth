@@ -6,10 +6,12 @@
 <p><strong>current_session:</strong> <%= current_session.inspect %></p>
 <p><strong>current_user:</strong> <%= current_user.inspect %></p>
 <p><strong>user_signed_in?:</strong> <%= user_signed_in? %></p>
-<p>
-  Unhappy with the service?
-  <%= button_to "Delete Account", action_auth.users_path, method: :delete %>
-</p>
+<% if user_signed_in? %>
+  <p>
+    Unhappy with the service?
+    <%= link_to "Delete your account", user_sessions_path %> from the management screen.
+  </p>
+<% end %>
 
 <h2>ActionAuth Configuration</h2>
 Account Deletion Enabled: <%= ActionAuth.configuration.allow_user_deletion? %><br>

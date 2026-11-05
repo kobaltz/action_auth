@@ -76,5 +76,19 @@ module ActionAuth
       assert_equal "Too many requests. Try again later.", flash[:alert]
       assert_enqueued_emails 5
     end
+
+    test "an app that hasn't run the new migration finds out right away, not from a failed job" do
+      columns = User.column_names - ["magic_link_used_at"]
+      User.singleton_class.define_method(:column_names) { columns }
+
+      error = assert_raises(RuntimeError) do
+        post magics_requests_url, params: { email: action_auth_users(:one).email }
+      end
+
+      assert_match "bin/rails action_auth:install:migrations db:migrate", error.message
+      assert_enqueued_emails 0
+    ensure
+      User.singleton_class.remove_method(:column_names)
+    end
   end
 end

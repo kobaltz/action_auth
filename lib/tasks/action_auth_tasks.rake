@@ -50,7 +50,8 @@ namespace :action_auth do
     routes_file_path = Rails.root.join('config', 'routes.rb')
     route_line = "mount ActionAuth::Engine => \"/action_auth\""
     routes_content = File.read(routes_file_path)
-    unless routes_content.include?(route_line)
+    # Any mount counts, however it's written. Mounting twice stops the app from booting.
+    unless routes_content.match?(/^[^#\n]*ActionAuth::Engine/)
       insert_after = "Rails.application.routes.draw do"
       new_routes_content = routes_content.sub(/(#{insert_after})/i, "\\1\n  #{route_line}\n")
       File.open(routes_file_path, 'w') do |file|
