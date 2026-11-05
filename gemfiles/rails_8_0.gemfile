@@ -1,0 +1,6 @@
+eval_gemfile "../Gemfile"
+
+gem "rails", "~> 8.0.0"
+
+# Rails 8.0 predates this major version.
+gem "json", "< 3"

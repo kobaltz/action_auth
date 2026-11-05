@@ -17,6 +17,22 @@ module ActionAuth
 
     attr_accessor :insert_cookie_domain
 
+    # The layout for ActionAuth's screens, e.g. "application". The default (nil)
+    # uses layouts/action_auth/application, which an app can also override by
+    # creating that file.
+    attr_accessor :layout
+
+    # The class ActionAuth's controllers inherit from, as a String. Set this to
+    # "ApplicationController" when a custom layout or view needs your app's
+    # helpers. Must be set in an initializer, not in an after_initialize block.
+    attr_accessor :parent_controller
+
+    # Where to send people after signing in and out. Either a path String or a
+    # Proc evaluated in the controller, e.g. -> { main_app.dashboard_path }.
+    # The default (nil) is your app's root path.
+    attr_accessor :after_sign_in_path
+    attr_accessor :after_sign_out_path
+
     def initialize
       @allow_user_deletion = true
       @default_from_email = Rails.application.config.action_mailer.default_options&.dig(:from) || "noreply@#{ENV['HOST'] || 'example.com'}"
@@ -33,6 +49,11 @@ module ActionAuth
       @session_timeout = 2.weeks
 
       @insert_cookie_domain = false
+
+      @layout = nil
+      @parent_controller = "ActionController::Base"
+      @after_sign_in_path = nil
+      @after_sign_out_path = nil
     end
 
     def allow_user_deletion?
@@ -51,11 +72,17 @@ module ActionAuth
       webauthn_enabled? && @passkey_only == true
     end
 
+    # The webauthn and pwned gems are optional, so these can only be on when the
+    # gem is actually loaded, whatever the initializer says.
     def webauthn_enabled?
+      return false unless defined?(WebAuthn)
+
       @webauthn_enabled.respond_to?(:call) ? @webauthn_enabled.call : @webauthn_enabled
     end
 
     def pwned_enabled?
+      return false unless defined?(Pwned)
+
       @pwned_enabled.respond_to?(:call) ? @pwned_enabled.call : @pwned_enabled
     end
 

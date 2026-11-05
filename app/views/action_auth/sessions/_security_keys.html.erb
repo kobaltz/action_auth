@@ -1,0 +1,32 @@
+<% if current_user.second_factor_enabled? %>
+  <h2>Your Security Keys</h2>
+  <table class="action-auth--table">
+    <thead>
+      <tr>
+        <th>Key</th>
+        <th>Type</th>
+        <th nowrap>Registered On</th>
+        <th nowrap></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% current_user.webauthn_credentials.each do |credential| %>
+        <%= content_tag :tr, id: dom_id(credential) do %>
+          <td><%= credential.nickname %></td>
+          <td><%= credential.key_type %></td>
+          <td nowrap><%= credential.created_at.strftime('%B %d, %Y') %></td>
+          <td nowrap><%= button_to "Delete", credential, method: :delete, class: "btn btn-primary" %></td>
+        <% end %>
+      <% end %>
+    </tbody>
+  </table>
+
+  <div class="mb-3">
+    <%= link_to "Register new Security Key", new_webauthn_credential_path, class: "btn btn-primary" %>
+  </div>
+<% else %>
+  <h2>Enable Two-Factor Authentication</h2>
+  <div class="mb-3">
+    <%= link_to "Add a passkey", new_webauthn_credential_path, class: "btn btn-primary" %>
+  </div>
+<% end %>

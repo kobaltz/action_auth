@@ -54,6 +54,24 @@ module ActionAuth
         "Password '#{password}' should pass all complexity requirements"
     end
 
+    test "generated passwords are accepted by the real model validations" do
+      20.times do
+        user = User.new(email: "generated@example.com", password: @controller.generate_compliant_password)
+        assert user.valid?, user.errors.full_messages.to_sentence
+      end
+    end
+
+    test "forms reject a missing CSRF token" do
+      original = ActionController::Base.allow_forgery_protection
+      ActionController::Base.allow_forgery_protection = true
+
+      post sign_in_url, params: { email: "a@example.com", password: "x" }
+
+      assert_response :unprocessable_entity
+    ensure
+      ActionController::Base.allow_forgery_protection = original
+    end
+
     test "generate_compliant_password consistently passes validation over multiple runs" do
       100.times do |i|
         password = @controller.generate_compliant_password

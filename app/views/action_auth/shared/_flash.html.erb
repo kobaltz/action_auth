@@ -1,0 +1,11 @@
+<%# Shown here rather than in the layout so that messages appear in any layout, and
+    removed once shown so that a layout which also displays flash doesn't repeat
+    them. To use your layout's own flash instead, make this partial empty. %>
+<% if notice.present? %>
+  <p class="action-auth--notice" role="status"><%= notice %></p>
+<% end %>
+<% if alert.present? %>
+  <p class="action-auth--alert" role="alert"><%= alert %></p>
+<% end %>
+<% flash.delete(:notice) %>
+<% flash.delete(:alert) %>

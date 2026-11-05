@@ -1,0 +1,28 @@
+<h2>Sessions</h2>
+<div id="sessions">
+  <table class="action-auth--table">
+    <thead>
+      <tr>
+        <th>User Agent</th>
+        <th nowrap>Ip Address</th>
+        <th nowrap>Created at</th>
+        <th nowrap></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% sessions.each do |session| %>
+        <%= content_tag :tr, id: dom_id(session) do %>
+          <td>
+            <%= session.user_agent %>
+            <% if session == current_session %>
+              <strong>(this device)</strong>
+            <% end %>
+          </td>
+          <td nowrap><%= session.ip_address %></td>
+          <td><%= session.created_at %></td>
+          <td><%= button_to "Log out", session, method: :delete, class: "btn btn-primary" %></td>
+        <% end %>
+      <% end %>
+    </tbody>
+  </table>
+</div>

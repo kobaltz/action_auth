@@ -1,10 +1,11 @@
+<%= render "action_auth/shared/flash" %>
+
 <h1>Verify SMS Code</h1>
 
 <%= form_with(url: sms_auths_sign_ins_path) do |form| %>
-  <%= form.hidden_field :phone_number, value: cookies.signed[:sms_auth_phone_number] %>
   <div class="mb-3">
     <%= form.label :sms_code, style: "display: block" %>
-    <%= form.number_field :sms_code, required: true, autofocus: true, autocomplete: "one-time-code" %>
+    <%= form.text_field :sms_code, required: true, autofocus: true, autocomplete: "one-time-code", inputmode: "numeric" %>
   </div>
 
   <div class="mb-3">
@@ -12,3 +13,6 @@
   </div>
 <% end %>
 
+<div>
+  <%= link_to "Send a new code", new_sms_auths_requests_path %>
+</div>

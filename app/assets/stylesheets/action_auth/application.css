@@ -124,10 +124,32 @@ input[type="password"] {
   pointer-events: none;
 }
 
-.btn-primary {
+.btn-primary,
+a.btn-primary:visited {
   color: #fff;
   background-color: #007bff;
   border-color: #007bff;
+}
+
+.btn-danger {
+  color: #fff;
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+
+.btn-danger:hover {
+  color: #fff;
+  background-color: #b02a37;
+  border-color: #b02a37;
+}
+
+.action-auth--notice {
+  color: #146c43;
+}
+
+.action-auth--alert,
+.action-auth--errors {
+  color: #b02a37;
 }
 
 .action-auth--table {
@@ -215,6 +237,21 @@ input[type="password"] {
     background-color: #d65d0e;
     border-color: #d65d0e;
     color: #fbf1c7;
+  }
+
+  a.btn,
+  a.btn:visited,
+  a.btn:hover {
+    color: #fbf1c7;
+  }
+
+  .action-auth--notice {
+    color: #b8bb26;
+  }
+
+  .action-auth--alert,
+  .action-auth--errors {
+    color: #fb4934;
   }
 
   .action-auth--table {

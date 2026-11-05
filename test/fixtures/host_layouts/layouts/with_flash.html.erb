@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html>
+  <head><title>Host App With Flash</title></head>
+  <body>
+    <% if alert %><div id="layout-alert"><%= alert %></div><% end %>
+    <% if notice %><div id="layout-notice"><%= notice %></div><% end %>
+    <%= yield %>
+  </body>
+</html>

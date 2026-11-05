@@ -10,6 +10,12 @@ ActionAuth.configure do |config|
   config.webauthn_origin = "http://localhost:3000" # or "https://example.com"
   config.webauthn_rp_name = Rails.application.class.to_s.deconstantize
   config.insert_cookie_domain = false
+
+  # test/support/host_parent_controller_check.rb runs the app in this mode.
+  if ENV["ACTION_AUTH_HOST_PARENT_CONTROLLER"].present?
+    config.parent_controller = "ApplicationController"
+    config.layout = "with_host_helper"
+  end
 end
 
 Rails.application.config.after_initialize do

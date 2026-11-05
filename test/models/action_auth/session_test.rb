@@ -20,5 +20,17 @@ module ActionAuth
       assert_equal Current.user_agent, session.user_agent
       assert_equal Current.ip_address, session.ip_address
     end
+
+    test "cuts off a user agent too long for a 255 character column" do
+      Current.user_agent = "x" * 1000
+
+      assert_equal 255, @user.sessions.create!.user_agent.length
+    end
+
+    test "allows a request without a user agent" do
+      Current.user_agent = nil
+
+      assert_nil @user.sessions.create!.user_agent
+    end
   end
 end

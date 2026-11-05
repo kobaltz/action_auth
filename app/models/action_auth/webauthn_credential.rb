@@ -2,6 +2,8 @@ module ActionAuth
   class WebauthnCredential < ApplicationRecord
     self.table_name = "webauthn_credentials"
 
+    belongs_to :user, class_name: "ActionAuth::User", optional: true
+
     validates :external_id, :public_key, :nickname, :sign_count, presence: true
     validates :external_id, uniqueness: true
     validates :sign_count,

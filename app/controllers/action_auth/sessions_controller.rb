@@ -1,6 +1,5 @@
 module ActionAuth
   class SessionsController < ApplicationController
-    before_action :set_current_request_details
     before_action :authenticate_user!, only: [:index, :destroy]
 
     rate_limit to: 5,
@@ -18,34 +17,30 @@ module ActionAuth
     end
 
     def create
-      if user = User.authenticate_by(email: params[:email], password: params[:password])
-        if user.second_factor_enabled?
-          session[:webauthn_user_id] = user.id
-          redirect_to new_webauthn_credential_authentications_path
-        else
-          return if check_if_email_is_verified(user)
-          @session = user.sessions.create
-          session_token_hash = { value: @session.id, httponly: true }
-          session_token_hash[:secure] = Rails.env.production? if Rails.env.production?
-          session_token_hash[:same_site] = :lax unless Rails.env.test?
-          session_token_hash[:domain] = :all if ActionAuth.configuration.insert_cookie_domain
-          cookies.signed.permanent[:session_token] = session_token_hash
-          redirect_to main_app.root_path, notice: "Signed in successfully"
-        end
+      user = User.authenticate_by(email: string_param(:email), password: string_param(:password))
+
+      if user
+        return if check_if_email_is_verified(user)
+
+        complete_sign_in(user, notice: "Signed in successfully")
       else
-        redirect_to sign_in_path(email_hint: params[:email]), alert: "That email or password is incorrect"
+        redirect_to sign_in_path(email_hint: string_param(:email)), alert: "That email or password is incorrect"
       end
     end
 
     def destroy
-      session = Current.user.sessions.find(params[:id])
-      session.destroy
-      cookie_options = {}
-      cookie_options[:secure] = Rails.env.production? if Rails.env.production?
-      cookie_options[:same_site] = :lax unless Rails.env.test?
-      cookies.delete(:session_token, cookie_options)
-      response.headers["Clear-Site-Data"] = '"cache","storage"'
-      redirect_to main_app.root_path, notice: "That session has been logged out"
+      user_session = Current.user.sessions.find(params[:id])
+      user_session.destroy
+
+      if user_session == Current.session
+        Current.session = nil
+        delete_action_auth_session_cookie
+        response.headers["Clear-Site-Data"] = '"cache","storage"'
+        redirect_to after_sign_out_path, notice: "That session has been logged out", status: :see_other
+      else
+        # Another device was signed out. This one stays signed in.
+        redirect_to sessions_path, notice: "That session has been logged out", status: :see_other
+      end
     end
 
     private
@@ -54,7 +49,7 @@ module ActionAuth
       return false unless ActionAuth.configuration.verify_email_on_sign_in
       return false if user.verified?
 
-      redirect_to sign_in_path(email_hint: params[:email]),
+      redirect_to sign_in_path(email_hint: string_param(:email)),
         alert: "You must verify your email before you sign in."
     end
   end

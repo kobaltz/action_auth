@@ -11,3 +11,4 @@
 action_auth-*.gem
 coverage/
 release.sh
+/gemfiles/*.lock

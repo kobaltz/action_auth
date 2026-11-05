@@ -4,7 +4,8 @@ module ActionAuth
 
     def destroy
       Current.user.destroy
-      redirect_to main_app.root_url, notice: "Your account has been deleted."
+      delete_action_auth_session_cookie
+      redirect_to after_sign_out_path, notice: "Your account has been deleted.", status: :see_other
     end
   end
 end

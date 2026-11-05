@@ -1,0 +1,8 @@
+Description:
+    Copies ActionAuth's views into app/views/action_auth so you can edit them.
+    With no arguments it copies everything. Pass scopes to copy only some.
+
+Examples:
+    bin/rails generate action_auth:views
+    bin/rails generate action_auth:views sessions registrations
+    bin/rails generate action_auth:views sessions --layout

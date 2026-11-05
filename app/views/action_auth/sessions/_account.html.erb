@@ -1,0 +1,13 @@
+<h2>Account</h2>
+<div class="mb-3">
+  <%= link_to "Change email", edit_identity_email_path %> |
+  <%= link_to "Change password", edit_password_path %>
+</div>
+
+<% if ActionAuth.configuration.allow_user_deletion? %>
+  <details class="mb-3">
+    <summary>Delete account</summary>
+    <p>This permanently deletes your account and signs you out everywhere. It can't be undone.</p>
+    <%= button_to "Permanently delete my account", users_path, method: :delete, class: "btn btn-danger" %>
+  </details>
+<% end %>

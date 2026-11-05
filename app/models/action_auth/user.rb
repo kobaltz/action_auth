@@ -26,7 +26,7 @@ module ActionAuth
 
     validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
     validates :password, allow_nil: true, length: { minimum: 12 }
-    validate :password_complexity, if: -> { ActionAuth.configuration.password_complexity_check? && password.present? && !Rails.env.test? }
+    validate :password_complexity, if: -> { ActionAuth.configuration.password_complexity_check? && password.present? }
     validates :phone_number,
               allow_nil: true,
               uniqueness: true,
@@ -43,7 +43,7 @@ module ActionAuth
     end
 
     after_update if: :password_digest_previously_changed? do
-      sessions.where.not(id: Current.session).delete_all
+      sessions.where.not(id: Current.session&.id).delete_all
     end
 
     def second_factor_enabled?

@@ -1,93 +1,192 @@
-require 'test_helper'
-require "webauthn/fake_client"
+require "test_helper"
 
-class WebauthnCredentialsControllerTest < ActionDispatch::IntegrationTest
-  setup do
-    @user = action_auth_users(:one)
-  end
+module ActionAuth
+  class WebauthnCredentialsControllerTest < ActionDispatch::IntegrationTest
+    setup do
+      @user = action_auth_users(:one)
+    end
 
-  test 'new should require authentication' do
-    get action_auth.new_webauthn_credential_path
-    assert_redirected_to action_auth.sign_in_path
+    def options_for_new_credential
+      post action_auth.options_for_webauthn_credentials_path(format: :json)
+      assert_response :success
+      response.parsed_body
+    end
 
-    sign_in_as(@user)
-    get action_auth.new_webauthn_credential_path
-    assert_response :success
-  end
+    def register(client: fake_webauthn_client, nickname: "USB Key", extra: {})
+      credential = client.create(challenge: options_for_new_credential["challenge"])
+      credential["response"].merge!(extra)
+      post_webauthn action_auth.webauthn_credentials_path(credential_nickname: nickname), credential
+    end
 
-  test 'options should require authentication' do
-    post action_auth.options_for_webauthn_credentials_path, params: { credentials: { nickname: 'USB Key' }, format: :json }
+    test "new requires sign in" do
+      get action_auth.new_webauthn_credential_path
+      assert_redirected_to action_auth.sign_in_path
 
-    assert_redirected_to action_auth.sign_in_path
-  end
-
-  test 'create should require authentication' do
-    post action_auth.webauthn_credentials_path, params: { credentials: { nickname: 'USB Key' }, format: :json }
-
-    assert_redirected_to action_auth.sign_in_path
-  end
-
-  test 'should initiate credential creation successfully' do
-    sign_in_as(@user)
-
-    post action_auth.options_for_webauthn_credentials_path, params: { credentials: { nickname: 'USB Key' }, format: :json }
-
-    assert_response :success
-  end
-
-  test "should return error if registering existing credential" do
-    raw_challenge = SecureRandom.random_bytes(32)
-    challenge = WebAuthn.configuration.encoder.encode(raw_challenge)
-    sign_in_as(@user)
-
-    WebAuthn::PublicKeyCredential::CreationOptions.stub_any_instance(:raw_challenge, raw_challenge) do
-      post action_auth.options_for_webauthn_credentials_path, params: { format: :json }
-
+      sign_in_as(@user)
+      get action_auth.new_webauthn_credential_path
       assert_response :success
     end
 
-    public_key_credential = WebAuthn::FakeClient.new("http://localhost:3000").create(challenge: challenge)
-    webauthn_credential = WebAuthn::Credential.from_create(public_key_credential)
-    create_user_with_credential(credential_nickname: 'USB Key', webauthn_credential: webauthn_credential)
+    test "options require sign in" do
+      post action_auth.options_for_webauthn_credentials_path(format: :json)
 
-    post(
-      action_auth.webauthn_credentials_path,
-      params: { credential_nickname: 'Android Phone' }.merge(public_key_credential)
-    )
+      assert_redirected_to action_auth.sign_in_path
+    end
 
-    assert_response :unprocessable_entity
-    assert_equal "Couldn't add your Security Key", response.body
-  end
+    test "create requires sign in" do
+      post action_auth.webauthn_credentials_path, params: { format: :json }
 
-  test 'destroy should require authentication' do
-    delete action_auth.webauthn_credential_path('1')
+      assert_redirected_to action_auth.sign_in_path
+    end
 
-    assert_redirected_to action_auth.sign_in_path
-  end
+    test "destroy requires sign in" do
+      delete action_auth.webauthn_credential_path("1")
 
-  test 'destroy should work' do
-    raw_registration_challenge = SecureRandom.random_bytes(32)
-    registration_challenge = WebAuthn.configuration.encoder.encode(raw_registration_challenge)
-    fake_client = WebAuthn::FakeClient.new("http://localhost:3000")
-    public_key_credential = fake_client.create(challenge: registration_challenge)
-    webauthn_credential = WebAuthn::Credential.from_create(public_key_credential)
-    user = create_user_with_credential(webauthn_credential: webauthn_credential)
-    sign_in_as(user)
+      assert_redirected_to action_auth.sign_in_path
+    end
 
-    raw_authentication_challenge = SecureRandom.random_bytes(32)
-    authentication_challenge = WebAuthn.configuration.encoder.encode(raw_authentication_challenge)
+    test "options assign a stable webauthn id and exclude keys already registered" do
+      sign_in_as(@user)
+      assert_nil @user.webauthn_id
 
-    public_key_credential = fake_client.get(challenge: authentication_challenge)
-    post(action_auth.webauthn_credential_authentications_path, params: public_key_credential)
-    delete action_auth.webauthn_credential_path(user.webauthn_credentials.first.id)
+      first = options_for_new_credential
+      webauthn_id = @user.reload.webauthn_id
+      assert webauthn_id.present?
+      assert_equal webauthn_id, first["user"]["id"]
+      assert_empty first["excludeCredentials"]
 
-    assert_redirected_to action_auth.sessions_path
-    assert_empty user.reload.webauthn_credentials
-  end
+      register
+      assert_response :success
 
-  private
+      second = options_for_new_credential
+      assert_equal webauthn_id, @user.reload.webauthn_id
+      assert_equal @user.webauthn_credentials.pluck(:external_id),
+        second["excludeCredentials"].map { |credential| credential["id"] }
+    end
 
-  def user
-    @user ||= User.create!(username: 'alice', password: 'foo')
+    test "asks for a credential that can be used to sign in without a password" do
+      sign_in_as(@user)
+
+      assert_equal "preferred", options_for_new_credential.dig("authenticatorSelection", "residentKey")
+    end
+
+    test "doesn't use up space on a key when passkey sign in is off" do
+      sign_in_as(@user)
+
+      with_action_auth_config(passkey_only: false) do
+        assert_nil options_for_new_credential.dig("authenticatorSelection", "residentKey")
+      end
+    end
+
+    test "registers a key" do
+      sign_in_as(@user)
+
+      assert_difference -> { @user.webauthn_credentials.count }, 1 do
+        register(nickname: "Yubi & Co")
+      end
+
+      assert_response :success
+      assert_equal "Yubi & Co", @user.webauthn_credentials.last.nickname
+      assert @user.reload.second_factor_enabled?
+    end
+
+    test "a nickname is required" do
+      sign_in_as(@user)
+
+      assert_no_difference("WebauthnCredential.count") { register(nickname: "") }
+
+      assert_response :unprocessable_entity
+      assert_equal "Couldn't add your Security Key", response.body
+    end
+
+    test "registering a key someone already registered fails" do
+      sign_in_as(@user)
+      client = fake_webauthn_client
+      existing = client.create(challenge: options_for_new_credential["challenge"])
+      create_user_with_credential(webauthn_credential: WebAuthn::Credential.from_create(existing))
+
+      post_webauthn action_auth.webauthn_credentials_path(credential_nickname: "Android"),
+        client.create(challenge: options_for_new_credential["challenge"]).merge(existing.slice("id", "rawId"))
+
+      assert_response :unprocessable_entity
+    end
+
+    test "registering against a different challenge fails" do
+      sign_in_as(@user)
+      options_for_new_credential
+
+      assert_no_difference("WebauthnCredential.count") do
+        post_webauthn action_auth.webauthn_credentials_path(credential_nickname: "Key"),
+          fake_webauthn_client.create(challenge: random_webauthn_challenge)
+      end
+
+      assert_response :unprocessable_entity
+      assert_equal "Verification failed", response.body
+    end
+
+    test "a registration challenge can only be used once" do
+      sign_in_as(@user)
+      credential = fake_webauthn_client.create(challenge: options_for_new_credential["challenge"])
+
+      post_webauthn action_auth.webauthn_credentials_path(credential_nickname: "Key"), credential
+      assert_response :success
+      @user.webauthn_credentials.destroy_all
+
+      post_webauthn action_auth.webauthn_credentials_path(credential_nickname: "Key"), credential
+      assert_response :unprocessable_entity
+    end
+
+    test "malformed payloads are refused rather than crashing" do
+      sign_in_as(@user)
+      options_for_new_credential
+
+      [{}, { rawId: "not base64!", response: {} }, { id: { a: "b" }, response: "text" }].each do |payload|
+        post_webauthn action_auth.webauthn_credentials_path(credential_nickname: "Key"), payload
+
+        assert_response :unprocessable_entity, "for #{payload.inspect}"
+      end
+    end
+
+    {
+      ["internal"] => "passkey",
+      ["hybrid", "internal"] => "passkey",
+      ["usb"] => "hardware",
+      ["nfc", "usb"] => "hardware",
+      ["bluetooth"] => "wireless",
+      "internal" => "passkey",
+      "usb" => "hardware",
+      ["carrier-pigeon"] => "unknown",
+      "carrier-pigeon" => "unknown",
+      [] => "unknown"
+    }.each do |transports, key_type|
+      test "transports #{transports.inspect} are recorded as #{key_type}" do
+        sign_in_as(@user)
+
+        register(extra: { "transports" => transports })
+
+        assert_equal key_type, @user.webauthn_credentials.last.key_type
+      end
+    end
+
+    test "destroy removes a key" do
+      user, = create_user_with_authenticator
+      sign_in_as(user)
+
+      delete action_auth.webauthn_credential_path(user.webauthn_credentials.first.id)
+
+      assert_redirected_to action_auth.sessions_path
+      assert_response :see_other
+      assert_empty user.reload.webauthn_credentials
+    end
+
+    test "can't remove someone else's key" do
+      other_user, = create_user_with_authenticator(email: "other@example.com")
+      sign_in_as(@user)
+
+      delete action_auth.webauthn_credential_path(other_user.webauthn_credentials.first.id)
+
+      assert_response :not_found
+      assert_equal 1, other_user.reload.webauthn_credentials.count
+    end
   end
 end

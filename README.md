@@ -1,6 +1,6 @@
 # ActionAuth
 ActionAuth is an authentication Rails engine crafted to integrate seamlessly
-with your Rails application. Optimized for Rails 7.2.0, it employs the most modern authentication
+with your Rails application. It supports Rails 7.2 and later, and employs the most modern authentication
 techniques and streamlined token reset processes. Its simplicity and ease of use let you concentrate
 on developing your application, while its reliance on ActiveSupport::CurrentAttributes ensures a
 user experience akin to that offered by the well-regarded Devise gem.
@@ -26,8 +26,7 @@ user experience akin to that offered by the well-regarded Devise gem.
 9. [Account Deletion](#account-deletion)
 10. [WebAuthn](#webauthn)
 11. [Within Your Application](#within-your-application)
-12. Customizing
-   - [Sign In Page](https://github.com/kobaltz/action_auth/wiki/Overriding-Sign-In-page-view)
+12. [Customizing](#customizing)
 13. [License](#license)
 14. [Credits](#credits)
 
@@ -80,13 +79,6 @@ In your view layout
 <% end %>
 ```
 
-If you're using something like importmaps and plain css, then you may need to add the lines below to your `app/assets/config/manifest.js` file.
-
-```javascript
-//= link action_auth/application.css
-//= link action_auth/application.js
-```
-
 See [WebAuthn](#webauthn) for additional configuration steps if you want to enable WebAuthn.
 In your `config/initializers/action_auth.rb` file, you can add the following configuration
 settings.
@@ -107,6 +99,12 @@ ActionAuth.configure do |config|
   config.webauthn_rp_name = Rails.application.class.to_s.deconstantize
 
   config.insert_cookie_domain = false
+
+  # See "Customizing" below
+  config.layout = "application" # Use your app's layout
+  config.parent_controller = "ApplicationController" # Lets your layout use your app's helpers
+  config.after_sign_in_path = "/dashboard" # or -> { main_app.dashboard_path }
+  config.after_sign_out_path = "/"
 end
 
 Rails.application.config.after_initialize do
@@ -184,11 +182,16 @@ ActionAuth comes with a robust set of security features designed to protect user
 - Rate limiting on registration attempts
 - Rate limiting on password reset attempts
 - Rate limiting on WebAuthn authentication
+- Rate limiting on magic link, SMS and password reset requests, and on SMS code guesses
+
+Rate limits are stored in `config.cache_store`, so `:null_store` turns them off. If you run several
+server processes, use a store they share, such as Solid Cache or Redis.
 
 ### Multi-Factor Authentication
 - Support for WebAuthn/passkeys as a second factor
 - Modern security key and biometric authentication support
-- Magic link authentication as an alternative authentication method
+- Magic link authentication as an alternative authentication method. An account with a security key
+  still has to use it after a magic link or an SMS code.
 
 ### Configuration Options
 ```ruby
@@ -214,8 +217,8 @@ Within your application, you'll have access to these routes. They have been styl
     user_session_path		DELETE		[:id]	Log Out
     new_user_session_path		GET			Log in
     new_user_registration_path	GET			Sign Up
-    edit_password_path		GET			Change Password
-    password_path			PATCH			Update Password
+    edit_user_password_path		GET			Change Password
+    user_password_path		PATCH			Update Password
 
 ### Helper Methods
 
@@ -242,7 +245,7 @@ can create a constraint to restrict access to these routes.
          session_token = request.cookie_jar.signed[:session_token]
          session = ActionAuth::Session.find_by(id: session_token)
          return nil unless session.present?
-         session.action_auth_user&.becomes(User)
+         session.user&.becomes(User)
       end
     end
 
@@ -333,11 +336,12 @@ end
 ## Account Deletion
 
 Account deletion is a feature that is enabled by default. When a user deletes their account, the account
-is marked as deleted and the user is logged out. The user will no longer be able to log in with their
-email and password. The user will need to create a new account if they wish to continue using the application.
+and its sessions and security keys are permanently deleted, and the user is logged out. The user will need
+to create a new account if they wish to continue using the application.
 
-Here's an example of how you may want to add a delete account button to your application. Obviously, you
-will want to style this to fit your application and have some kind of confirmation dialog.
+The management screen at `user_sessions_path` includes a button for this. Here's an example of how you may
+want to add one somewhere else in your application. Obviously, you will want to style this to fit your
+application and have some kind of confirmation dialog.
 
 ```
 <p>
@@ -353,6 +357,9 @@ so users will still need to register their email address and password. Once the 
 they can add a Passkey to their account. The Passkey could be an iCloud Keychain, a hardware security
 key like a Yubikey, or a mobile device. If enabled and configured, the user will be prompted to use
 their Passkey after they log in.
+
+The screens that use WebAuthn load Stimulus and `@github/webauthn-json` from unpkg.com, and no other screen
+loads them. If your app has a Content Security Policy, it needs to allow that host on those screens.
 
 #### Configuration
 
@@ -440,6 +447,141 @@ end
 
 Now, you'll be able to do things like `Current.user` and `Current.user.posts` within your application. However, I recommend that you still use
 the helpers around `user_signed_in?` to verify that the `ActionAuth::Current.user` is not nil (or nil if they are signed out). This will help ensure that any thread safety issues are avoided.
+
+## Customizing
+
+There are several ways to make ActionAuth's screens your own. Start at the top, and only go as far as you need.
+
+### Use your app's layout
+
+This is one line, and is often all you need.
+
+```ruby
+# config/initializers/action_auth.rb
+ActionAuth.configure do |config|
+  config.layout = "application"
+end
+```
+
+Your layout's route helpers, like `root_path`, keep working on these screens. If your app has a route with the
+same name as one of ActionAuth's, such as `session_path`, ActionAuth's wins here, so use `main_app.session_path`
+for yours.
+
+If your layout calls your own helpers, also make ActionAuth's controllers inherit from your `ApplicationController`.
+
+```ruby
+ActionAuth.configure do |config|
+  config.layout = "application"
+  config.parent_controller = "ApplicationController"
+end
+```
+
+This has to be set in the initializer's `ActionAuth.configure` block, not inside `after_initialize`.
+
+If your `ApplicationController` has `before_action :authenticate_user!`, there's nothing more to do, because
+ActionAuth skips it on the screens that have to be public. For any other filter that shouldn't run on these screens,
+such as checking for a subscription, use the `action_auth_controller?` predicate.
+
+```ruby
+class ApplicationController < ActionController::Base
+  before_action :authenticate_user!
+  before_action :require_subscription, unless: :action_auth_controller?
+end
+```
+
+Only a few screens need a different layout? Create one named after the screens, and leave `config.layout` unset. For
+example, `app/views/layouts/action_auth/sessions.html.erb` is used for the sign in page and the management screen.
+To replace the default layout without changing the setting, create `app/views/layouts/action_auth/application.html.erb`.
+
+### Change the views
+
+Copy the views into your app, then edit them. Your copies take priority over the ones in the gem.
+
+```bash
+bin/rails generate action_auth:views                       # Everything
+bin/rails generate action_auth:views sessions registrations # Only these
+bin/rails generate action_auth:views sessions --layout     # Also the default layout
+```
+
+    Scope					Screens
+    sessions				Sign in, and the management screen for sessions and security keys
+    registrations				Sign up
+    passwords				Change password
+    identity				Change email, verify email and reset password
+    magics					Request a magic link
+    sms_auths				Request and enter an SMS code
+    webauthn_credentials			Add a security key
+    webauthn_credential_authentications	Use a security key while signing in
+    user_mailer				Emails
+    shared					Flash messages, form errors and links between screens
+
+Copied views don't pick up fixes from future versions of ActionAuth, so only keep the ones you've changed. Delete the
+rest and they'll go back to following the gem.
+
+Inside a view, your app's routes are available as usual, and ActionAuth's helpers are there too.
+
+    Helper					Description
+    action_auth_links			[label, path] pairs for the other auth screens, leaving out disabled features and the current page
+    after_sign_in_path			Where signing in goes
+    after_sign_out_path			Where signing out goes
+    current_user, current_session		The signed in user and their session
+
+For example, to style the links between screens without checking which features are on:
+
+```erb
+<% action_auth_links.each do |label, path| %>
+  <%= link_to label, path, class: "underline" %>
+<% end %>
+```
+
+See [examples](examples) for some Tailwind CSS versions of these screens.
+
+### Change one piece
+
+If you only want to change part of a screen, override the partial that renders it. Generate the `shared` or `sessions`
+scope and delete the files you don't need, or create the file yourself.
+
+    Partial in app/views/action_auth		Used for
+    shared/_flash.html.erb			Flash messages
+    shared/_errors.html.erb			Form errors
+    shared/_links.html.erb			Links between the sign in, sign up and similar screens
+    sessions/_sessions.html.erb		List of signed in devices on the management screen
+    sessions/_security_keys.html.erb		List of security keys on the management screen
+    sessions/_account.html.erb		Change email, change password and delete account
+
+#### Flash messages
+
+Each screen displays its own flash messages, so they appear in any layout. They're removed once displayed, so a layout
+that also displays flash won't show them twice. To use your layout's flash instead, make
+`app/views/action_auth/shared/_flash.html.erb` an empty file.
+
+#### WebAuthn screens
+
+If you write your own screens for adding or using a security key, keep these parts from the generated views, since the
+JavaScript looks for them.
+
+- `<%= action_auth_webauthn_tags %>`, which loads the scripts and URLs they need, in any layout.
+- The `id="webauthn_credential_form"` element and its `data-controller` attributes.
+- `<%= render "action_auth/shared/webauthn_error" %>`, or any element with `id="webauthn_error"`, to show failures.
+
+### Change where people go
+
+```ruby
+ActionAuth.configure do |config|
+  config.after_sign_in_path = "/dashboard"
+  config.after_sign_out_path = "/"
+
+  # A Proc runs in the controller, so it can use routes and the request
+  config.after_sign_in_path = -> { main_app.dashboard_path }
+end
+```
+
+Both default to your app's root path.
+
+### Change the emails
+
+Generate the `user_mailer` scope to change their content. They use your app's `layouts/mailer` layout, and come from
+`config.default_from_email`.
 
 ## License
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).

@@ -1,50 +1,49 @@
+<%= render "action_auth/shared/flash" %>
 
-<% if user_signed_in? && ActionAuth::Current.user.verified? %>
-  <% header_text = "Change Your Email" %>
-  <% label_text = "New email" %>
-  <% button_text = "Save changes" %>
-  <% form_url = identity_email_path %>
-  <% form_method = :patch %>
-<% else %>
-  <% header_text = "Verify Your Email" %>
-  <% label_text = "Email" %>
-  <% button_text = "Send verification email" %>
-  <% form_url = identity_email_verification_path %>
-  <% form_method = :post %>
-<% end %>
-<h1><%= header_text %></h1>
+<% if user_signed_in? %>
+  <h1>Change Your Email</h1>
 
-<p style="color: red"><%= alert %></p>
+  <%= form_with(url: identity_email_path, method: :patch) do |form| %>
+    <%= render "action_auth/shared/errors", record: @user %>
 
-<%= form_with(url: form_url, method: form_method) do |form| %>
-  <% if @user&.errors&.any? %>
-    <div style="color: red">
-      <h2><%= pluralize(@user.errors.count, "error") %> prohibited this user from being saved:</h2>
-      <ul>
-        <% @user.errors.each do |error| %>
-          <li><%= error.full_message %></li>
-        <% end %>
-      </ul>
+    <div class="mb-3">
+      <%= form.label :email, "New email", style: "display: block" %>
+      <%= form.email_field :email, value: params[:email], required: true, autofocus: true, autocomplete: "email" %>
+    </div>
+
+    <div class="mb-3">
+      <%= form.label :password_challenge, "Current password", style: "display: block" %>
+      <%= form.password_field :password_challenge, required: true, autocomplete: "current-password" %>
+    </div>
+
+    <div class="mb-3">
+      <%= form.submit "Save changes", class: "btn btn-primary" %>
     </div>
   <% end %>
 
-  <div class="mb-3">
-    <%= form.label :email, label_text, style: "display: block" %>
-    <%= form.email_field :email, required: true, autofocus: true %>
-  </div>
+  <% unless current_user.verified? %>
+    <div class="mb-3">
+      <p><%= current_user.email %> hasn't been verified yet.</p>
+      <%= button_to "Resend verification email", identity_email_verification_path, params: { email: current_user.email }, class: "btn btn-primary" %>
+    </div>
+  <% end %>
 
-  <div class="mb-3">
-    <% if user_signed_in? && ActionAuth::Current.user.verified? %>
-      <%= form.submit button_text, class: "btn btn-primary" %>
-    <% else %>
-      <%= button_to button_text, identity_email_verification_path, class: "btn btn-primary" %>
-    <% end %>
-
+  <div>
+    <%= link_to "Back", sessions_path %>
   </div>
+<% else %>
+  <h1>Verify Your Email</h1>
+
+  <%= form_with(url: identity_email_verification_path) do |form| %>
+    <div class="mb-3">
+      <%= form.label :email, style: "display: block" %>
+      <%= form.email_field :email, required: true, autofocus: true, autocomplete: "email" %>
+    </div>
+
+    <div class="mb-3">
+      <%= form.submit "Send verification email", class: "btn btn-primary" %>
+    </div>
+  <% end %>
+
+  <%= render "action_auth/shared/links" %>
 <% end %>
-
-<div class="mb-3">
-  <%= link_to "Sign In", sign_in_path %> |
-  <%= link_to "Sign Up", sign_up_path %> |
-  <%= link_to "Reset Password", new_identity_password_reset_path %>
-</div>

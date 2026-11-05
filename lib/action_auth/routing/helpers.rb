@@ -17,6 +17,14 @@ module ActionAuth
         action_auth.sign_up_path
       end
 
+      def edit_user_password_path
+        action_auth.edit_password_path
+      end
+
+      def user_password_path
+        action_auth.password_path
+      end
+
       def edit_password_path
         action_auth.edit_password_path
       end

@@ -1,0 +1,3 @@
+<div class="mb-3 action-auth--links">
+  <%= safe_join(action_auth_links.map { |label, path| link_to(label, path) }, " | ") %>
+</div>

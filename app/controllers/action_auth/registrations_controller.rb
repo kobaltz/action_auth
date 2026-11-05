@@ -1,12 +1,12 @@
 module ActionAuth
   class RegistrationsController < ApplicationController
-    before_action :validate_pwned_password, only: :create
-
     rate_limit to: 3,
       within: 60.seconds,
       only: :create,
       name: "registration-throttle",
       with: -> { redirect_to new_user_registration_path, alert: "Too many registration attempts. Try again later." }
+
+    before_action :validate_new_password, only: :create
 
     def new
       @user = User.new
@@ -20,13 +20,8 @@ module ActionAuth
           send_email_verification
           redirect_to sign_in_path, notice: "Welcome! You have signed up successfully. Please check your email to verify your account."
         else
-          session_record = @user.sessions.create!
-          cookie_options = { value: session_record.id, httponly: true }
-          cookie_options[:secure] = Rails.env.production? if Rails.env.production?
-          cookie_options[:same_site] = :lax unless Rails.env.test?
-          cookies.signed.permanent[:session_token] = cookie_options
-
-          redirect_to sign_in_path, notice: "Welcome! You have signed up successfully"
+          start_session_for(@user)
+          redirect_to after_sign_in_path, notice: "Welcome! You have signed up successfully"
         end
       else
         render :new, status: :unprocessable_entity
@@ -43,22 +38,9 @@ module ActionAuth
       UserMailer.with(user: @user).email_verification.deliver_later
     end
 
-    def validate_pwned_password
-      return unless ActionAuth.configuration.pwned_enabled?
-
-      if params[:password].present? && !Rails.env.test? && (params[:password] !~ /[A-Z]/ || params[:password] !~ /[a-z]/ || params[:password] !~ /[0-9]/ || params[:password] !~ /[^A-Za-z0-9]/)
-        @user = User.new(email: params[:email])
-        @user.errors.add(:password, "must include at least one uppercase letter, one lowercase letter, one number, and one special character.")
-        render :new, status: :unprocessable_entity and return
-      end
-
-      pwned = Pwned::Password.new(params[:password])
-
-      if pwned.pwned?
-        @user = User.new(email: params[:email])
-        @user.errors.add(:password, "has been pwned #{pwned.pwned_count} times. Please choose a different password.")
-        render :new, status: :unprocessable_entity
-      end
+    def validate_new_password
+      @user = User.new(email: string_param(:email))
+      reject_unusable_password(@user, :new)
     end
   end
 end

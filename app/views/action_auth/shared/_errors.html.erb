@@ -1,0 +1,10 @@
+<% if record&.errors&.any? %>
+  <div class="action-auth--errors" role="alert">
+    <h2><%= pluralize(record.errors.count, "error") %> prohibited this user from being saved:</h2>
+    <ul>
+      <% record.errors.each do |error| %>
+        <li><%= error.full_message %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>

@@ -15,7 +15,7 @@ ActionAuth::Engine.routes.draw do
       resources :passkeys, only: [:new, :create]
     end
   end
-  resources :sessions, only: [:index, :show, :destroy]
+  resources :sessions, only: [:index, :destroy]
 
   if ActionAuth.configuration.allow_user_deletion?
     resource  :users, only: [:destroy]

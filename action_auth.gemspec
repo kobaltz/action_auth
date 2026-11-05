@@ -16,12 +16,12 @@ Gem::Specification.new do |spec|
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://www.github.com/kobaltz/action_auth"
-  spec.metadata["changelog_uri"] = "https://www.github.com/kobaltz/action_auth/CHANGELOG.md"
+  spec.metadata["changelog_uri"] = "https://github.com/kobaltz/action_auth/blob/main/CHANGELOG.md"
 
   spec.files = Dir.chdir(File.expand_path(__dir__)) do
-    Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
+    Dir["{app,config,db,lib}/**/*", "CHANGELOG.md", "MIT-LICENSE", "Rakefile", "README.md"]
   end
 
-  spec.add_dependency "rails", ">= 7.1"
+  spec.add_dependency "rails", ">= 7.2"
   spec.add_dependency "bcrypt", "~> 3.1.0"
 end

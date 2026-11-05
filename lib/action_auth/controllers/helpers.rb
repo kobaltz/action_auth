@@ -21,12 +21,19 @@ module ActionAuth
           redirect_to new_user_session_path
         end
         helper_method :authenticate_user!
+
+        # True inside ActionAuth's own controllers. Lets an app that uses
+        # config.parent_controller exempt them from its other filters:
+        #   before_action :require_subscription, unless: :action_auth_controller?
+        def action_auth_controller?; false; end
+        helper_method :action_auth_controller?
       end
 
       private
 
       def set_current_request_details
-        Current.session = Session.find_by(id: cookies.signed[:session_token])
+        session_token = cookies.signed[:session_token]
+        Current.session = Session.find_by(id: session_token) if session_token.present?
         Current.user_agent = request.user_agent
         Current.ip_address = request.ip
 
@@ -35,27 +42,37 @@ module ActionAuth
                               Current.session.user_agent != Current.user_agent)
           Rails.logger.warn "Session environment changed for user #{Current.user&.id}: IP or User-Agent mismatch"
           # Optional: Force re-authentication for suspicious activity
-          # cookies.delete(:session_token, secure: Rails.env.production?, same_site: :lax)
+          # delete_action_auth_session_cookie
           # Current.session = nil
         end
       end
 
       def check_session_timeout
-        return unless Current.session
-        return if Rails.env.test?
-
         timeout = ActionAuth.configuration.session_timeout
+        return unless Current.session && timeout
+
         if Current.session.updated_at < timeout.ago
-          Rails.logger.info "Session timed out for user #{Current.user&.id}"
+          Rails.logger.info "Session timed out for user #{Current.session.user_id}"
           Current.session.destroy
-          cookie_options = {}
-          cookie_options[:secure] = Rails.env.production? if Rails.env.production?
-          cookie_options[:same_site] = :lax unless Rails.env.test?
-          cookies.delete(:session_token, cookie_options)
+          Current.session = nil
+          delete_action_auth_session_cookie
           redirect_to new_user_session_path, alert: "Your session has expired. Please sign in again."
-        else
+        elsif Current.session.updated_at < 1.minute.ago
+          # Inactivity is tracked to the minute, so most requests don't need a write.
           Current.session.touch
         end
+      end
+
+      def action_auth_session_cookie_options
+        options = { httponly: true, same_site: :lax }
+        options[:secure] = true if Rails.env.production? || request.ssl?
+        options[:domain] = :all if ActionAuth.configuration.insert_cookie_domain
+        options
+      end
+
+      # A cookie can only be deleted with the domain it was set with.
+      def delete_action_auth_session_cookie
+        cookies.delete(:session_token, action_auth_session_cookie_options)
       end
     end
   end

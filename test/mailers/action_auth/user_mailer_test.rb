@@ -6,22 +6,52 @@ module ActionAuth
       @user = action_auth_users(:one)
     end
 
-    test "password_reset" do
+    test "password_reset links to a working token in both formats" do
       mail = ActionAuth::UserMailer.with(user: @user).password_reset
+
       assert_equal "Reset your password", mail.subject
       assert_equal [@user.email], mail.to
+      assert_equal 2, mail.parts.size
+      mail.parts.each do |part|
+        token = part.body.to_s[/sid=([^"\s]+)/, 1]
+        assert_equal @user, User.find_by_token_for(:password_reset, CGI.unescape(token))
+      end
     end
 
-    test "email_verification" do
+    test "the text version of the reset email has no HTML in it" do
+      mail = ActionAuth::UserMailer.with(user: @user).password_reset
+
+      assert_no_match(/<\w+>/, mail.text_part.body.to_s)
+    end
+
+    test "email_verification links to a working token in both formats" do
       mail = ActionAuth::UserMailer.with(user: @user).email_verification
+
       assert_equal "Verify your email", mail.subject
       assert_equal [@user.email], mail.to
+      assert_equal 2, mail.parts.size
+      mail.parts.each do |part|
+        token = part.body.to_s[/sid=([^"\s]+)/, 1]
+        assert_equal @user, User.find_by_token_for(:email_verification, CGI.unescape(token))
+      end
     end
 
-    test "magic_link" do
+    test "magic_link links to a working token in both formats" do
       mail = ActionAuth::UserMailer.with(user: @user).magic_link
+
       assert_equal "Sign in to your account", mail.subject
       assert_equal [@user.email], mail.to
+      assert_equal 2, mail.parts.size
+      mail.parts.each do |part|
+        token = part.body.to_s[/token=([^"\s]+)/, 1]
+        assert_equal @user, User.find_by_token_for(:magic_token, CGI.unescape(token))
+      end
+    end
+
+    test "comes from the configured address, read when the mail is built" do
+      with_action_auth_config(default_from_email: "auth@example.org") do
+        assert_equal ["auth@example.org"], ActionAuth::UserMailer.with(user: @user).magic_link.from
+      end
     end
   end
 end

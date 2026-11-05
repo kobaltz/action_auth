@@ -1,68 +1,12 @@
-<p style="color: green"><%= notice %></p>
+<%= render "action_auth/shared/flash" %>
 
-<h1>
-  Devices & Sessions
-</h1>
-<small><%= link_to "back to app", main_app.root_path %></small>
+<h1>Devices &amp; Sessions</h1>
+<small><%= link_to "back to app", after_sign_in_path %></small>
 
-<h2>Sessions</h2>
-<div id="sessions">
-  <table class="action-auth--table">
-    <thead>
-      <tr>
-        <th>User Agent</th>
-        <th nowrap>Ip Address</th>
-        <th nowrap>Created at</th>
-        <th nowrap></th>
-      </tr>
-    </thead>
-    <tbody>
-      <% @sessions.each do |session| %>
-        <%= content_tag :tr, id: dom_id(session) do %>
-          <td><%= session.user_agent %></td>
-          <td nowrap><%= session.ip_address %></td>
-          <td><%= session.created_at %></td>
-          <td><%= button_to "Log out", session, method: :delete, class: "btn btn-primary" %></td>
-        <% end %>
-      <% end %>
-    </tbody>
-  </table>
-</div>
+<%= render "action_auth/sessions/sessions", sessions: @sessions %>
 
 <% if ActionAuth.configuration.webauthn_enabled? %>
-  <% if current_user.second_factor_enabled? %>
-    <h3>Your Security Keys:</h3>
-    <table class="action-auth--table">
-      <thead>
-        <tr>
-          <th>Key</th>
-          <th>Type</th>
-          <th nowrap>Registered On</th>
-          <th nowrap></th>
-        </tr>
-      </thead>
-      <tbody>
-        <% current_user.webauthn_credentials.each do |credential| %>
-          <%= content_tag :tr, id: dom_id(credential) do %>
-            <td><%= credential.nickname %></td>
-            <td><%= credential.key_type %></td>
-            <td nowrap><%= credential.created_at.strftime('%B %d, %Y') %></td>
-            <td nowrap><%= button_to "Delete", credential, method: :delete, class: "btn btn-primary" %></td>
-          <% end %>
-        <% end %>
-      </tbody>
-    </table>
-
-    <div>
-      <%= button_to("Register new Security Key",
-                    new_webauthn_credential_path,
-                    method: :get,
-                    class: "btn btn-primary") %>
-    </div>
-  <% else %>
-    <h2>Enable Two-Factor Authentication</h2>
-    <div class="">
-      <%= link_to "Add a passkey", new_webauthn_credential_path, class: "btn btn-primary" %>
-    </div>
-  <% end %>
+  <%= render "action_auth/sessions/security_keys" %>
 <% end %>
+
+<%= render "action_auth/sessions/account" %>
