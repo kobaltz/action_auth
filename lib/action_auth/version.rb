@@ -1,3 +1,3 @@
 module ActionAuth
-  VERSION = "1.8.9"
+  VERSION = "2.0.0"
 end
