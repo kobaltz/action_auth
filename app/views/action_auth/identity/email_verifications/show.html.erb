@@ -1,0 +1,23 @@
+<%= render "action_auth/shared/flash" %>
+
+<h1>Verify your email</h1>
+
+<p>Enter the password for this account to confirm that <strong><%= @user.email %></strong> is yours.</p>
+
+<%= form_with(url: identity_email_verification_path, method: :patch) do |form| %>
+  <%= form.hidden_field :sid, value: params[:sid] %>
+
+  <div class="mb-3">
+    <%= form.label :password, style: "display: block" %>
+    <%= form.password_field :password, required: true, autofocus: true, autocomplete: "current-password" %>
+  </div>
+
+  <div>
+    <%= form.submit "Verify email", class: "btn btn-primary" %>
+  </div>
+<% end %>
+
+<p>
+  Don't know the password? You can <%= link_to "reset it", new_identity_password_reset_path %>, which also verifies this
+  address. If you didn't sign up, you can ignore this and nothing will change.
+</p>

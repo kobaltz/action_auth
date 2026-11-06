@@ -24,7 +24,7 @@ class UpgradeTest < ActiveSupport::TestCase
 
     assert status.success?, output
     assert_match(/\b0 failures, 0 errors\b/, output)
-    assert_match(/\b15 runs\b/, output)
+    assert_match(/\b17 runs\b/, output)
   end
 
   test "the migrations apply to that app's data and turn the features on" do

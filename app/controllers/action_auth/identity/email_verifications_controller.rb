@@ -1,7 +1,7 @@
 module ActionAuth
   module Identity
     class EmailVerificationsController < ApplicationController
-      before_action :set_user, only: :show
+      before_action :set_user, only: [:show, :update]
 
       rate_limit to: 5,
         within: 1.minute,
@@ -9,9 +9,30 @@ module ActionAuth
         name: "email-verification-throttle",
         with: -> { redirect_to sign_in_path, alert: "Too many requests. Try again later." }
 
+      rate_limit to: 5,
+        within: 1.minute,
+        only: :update,
+        name: "email-verification-password-throttle",
+        with: -> { redirect_to sign_in_path, alert: "Too many attempts. Try again later.", status: :see_other }
+
+      # Mail scanners and link previews open the links in an email, so opening one
+      # changes nothing. It only asks for the password.
       def show
-        @user.update! verified: true
-        redirect_to sign_in_path, notice: "Thank you for verifying your email address"
+        redirect_to sign_in_path, notice: "Your email address is already verified" if @user.verified?
+      end
+
+      # A locked account gets the same answer whether or not the password is right, as
+      # it does at sign in, so that this can't be used to carry on guessing.
+      def update
+        if @user.verify_email_with_password(string_param(:password))
+          redirect_to sign_in_path, notice: "Thank you for verifying your email address", status: :see_other
+        else
+          # An empty form isn't a guess.
+          record_failed_sign_in(@user) if string_param(:password).present?
+
+          flash.now[:alert] = "That password is incorrect"
+          render :show, status: :unprocessable_entity
+        end
       end
 
       def create

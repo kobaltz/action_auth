@@ -342,6 +342,82 @@ module ActionAuth
       assert user.authenticate_password(FIXTURE_PASSWORD)
     end
 
+    test "verifying needs the right password" do
+      user = action_auth_users(:one)
+
+      assert_not user.verify_email_with_password("not the password")
+      assert_not user.reload.verified
+
+      assert user.verify_email_with_password(FIXTURE_PASSWORD)
+      assert user.reload.verified
+    end
+
+    test "verifying is refused during a lock" do
+      user = action_auth_users(:one)
+      user.update!(account_locked_at: Time.current)
+
+      assert_not user.verify_email_with_password(FIXTURE_PASSWORD)
+      assert_not user.reload.verified
+    end
+
+    test "verifying is refused if the email changed after the link was checked" do
+      user = action_auth_users(:one)
+      loaded_earlier = User.find(user.id)
+      user.update!(email: "new_address@example.com")
+
+      assert_not loaded_earlier.verify_email_with_password(FIXTURE_PASSWORD)
+
+      assert_not user.reload.verified
+    end
+
+    test "a reset is refused if the email changed after the link was checked" do
+      user = action_auth_users(:one)
+      loaded_earlier = User.find(user.id)
+      user.update!(email: "new_address@example.com")
+
+      assert_not loaded_earlier.reset_password_from_emailed_link(password: STRONG_PASSWORD, password_confirmation: STRONG_PASSWORD)
+
+      user.reload
+      assert_not user.verified
+      assert user.authenticate_password(FIXTURE_PASSWORD)
+    end
+
+    test "changing the email marks it unverified even if this copy already thought it was" do
+      user = action_auth_users(:one)
+      loaded_earlier = User.find(user.id)
+      user.update!(verified: true)
+
+      loaded_earlier.update!(email: "new_address@example.com")
+
+      assert_not user.reload.verified
+    end
+
+    test "a reset that can't finish leaves everything as it was" do
+      user = action_auth_users(:one)
+      other_device = user.sessions.create!
+
+      stub_class_method(ConnectedAccount, :table_exists?, -> { raise "the database went away" }) do
+        assert_raises(RuntimeError) do
+          user.reset_password_from_emailed_link(password: STRONG_PASSWORD, password_confirmation: STRONG_PASSWORD)
+        end
+      end
+
+      user.reload
+      assert_not user.verified
+      assert user.authenticate_password(FIXTURE_PASSWORD)
+      assert user.sessions.exists?(other_device.id)
+    end
+
+    test "a reset doesn't need the connected accounts table yet" do
+      user = action_auth_users(:one)
+
+      stub_class_method(ConnectedAccount, :table_exists?, false) do
+        assert user.reset_password_from_emailed_link(password: STRONG_PASSWORD, password_confirmation: STRONG_PASSWORD)
+      end
+
+      assert user.reload.verified
+    end
+
     test "the password only counts as usable when it could be known" do
       assert action_auth_users(:one).password_usable?
 

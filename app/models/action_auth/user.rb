@@ -24,7 +24,7 @@ module ActionAuth
     end
 
     generates_token_for :password_reset, expires_in: 20.minutes do
-      password_salt.last(10)
+      [password_salt.last(10), email]
     end
 
     generates_token_for :magic_token, expires_in: 20.minutes do
@@ -45,8 +45,12 @@ module ActionAuth
     normalizes :phone_number, with: -> phone_number { phone_number.gsub(/[^+\d]/, '') }
     normalizes :email, with: -> email { email.strip.downcase }
 
+    # Always written with the new email, even if this copy already reads false. Otherwise
+    # a verification of the old address finishing at the same moment would leave the new
+    # address marked as verified.
     before_validation if: :email_changed?, on: :update do
       self.verified = false
+      verified_will_change!
     end
 
     after_update if: :password_digest_previously_changed? do
@@ -85,7 +89,36 @@ module ActionAuth
         next false unless claimed == 1
 
         reload
-        remove_access_from_before_address_was_proven if address_was_unproven
+        if address_was_unproven
+          self.password = SecureRandom.base58(32)
+          save!(validate: false)
+          remove_access_from_before_address_was_proven
+        end
+        true
+      end
+    end
+
+    # Verifying takes both the emailed link, which proves the inbox, and the password,
+    # which proves it's whoever set up this account. Neither is enough alone. Anyone can
+    # sign up with someone else's address and know the password, and that address's owner
+    # or their mail scanner can open the link without having signed up at all.
+    def verify_email_with_password(password)
+      keeping_emailed_address do
+        next false if account_locked? || !authenticate_password(password)
+
+        update!(verified: true)
+      end
+    end
+
+    # A reset link proves the inbox too, and it's how an address's owner takes over an
+    # account they don't know the password to, so it does what a first magic link does.
+    def reset_password_from_emailed_link(attributes)
+      keeping_emailed_address do
+        next false unless update(attributes)
+        next true if verified?
+
+        update_column(:verified, true)
+        remove_access_from_before_address_was_proven
         true
       end
     end
@@ -195,10 +228,16 @@ module ActionAuth
     # key keeps the owner out rather than letting the two share an account, and removing
     # keys would let someone holding only the inbox get past a second factor.
     def remove_access_from_before_address_was_proven
-      self.password = SecureRandom.base58(32)
-      save!(validate: false)
       sessions.delete_all
       connected_accounts.destroy_all if ConnectedAccount.table_exists?
+    end
+
+    # A link only proves the address it was sent to. Hashing a password is slow enough
+    # for someone to change the email in the meantime, so this holds the row and checks
+    # that the address is still the one the link was checked against.
+    def keeping_emailed_address
+      address = email
+      with_lock { email == address && yield }
     end
 
     def warn_about_lockout_migration

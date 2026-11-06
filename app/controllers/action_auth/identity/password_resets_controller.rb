@@ -20,14 +20,14 @@ module ActionAuth
       # The response is the same whether or not the account exists, so this form
       # can't be used to find out who has an account.
       def create
-        user = ActionAuth::User.find_by(email: string_param(:email), verified: true)
+        user = ActionAuth::User.find_by(email: string_param(:email))
         UserMailer.with(user: user).password_reset.deliver_later if user && !user.account_suspended?
 
-        redirect_to sign_in_path, notice: "If that email address has been verified, you'll receive reset instructions shortly."
+        redirect_to sign_in_path, notice: "If there's an account with that email address, you'll receive reset instructions shortly."
       end
 
       def update
-        if @user.update(user_params)
+        if @user.reset_password_from_emailed_link(user_params)
           redirect_to sign_in_path, notice: "Your password was reset successfully. Please sign in", status: :see_other
         else
           render :edit, status: :unprocessable_entity

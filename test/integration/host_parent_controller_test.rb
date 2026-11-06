@@ -9,6 +9,6 @@ class HostParentControllerTest < ActiveSupport::TestCase
     output, status = Open3.capture2e(env, "bin/rails", "test", "test/support/host_parent_controller_check.rb", chdir: root)
 
     assert status.success?, output
-    assert_match(/\b6 runs\b/, output)
+    assert_match(/\b7 runs\b/, output)
   end
 end

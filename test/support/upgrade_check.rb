@@ -233,6 +233,31 @@ else
       assert_not @user.authenticate_password(FIXTURE_PASSWORD)
     end
 
+    test "verifying an email works, including a wrong password" do
+      @user.update!(verified: false)
+      sid = @user.generate_token_for(:email_verification)
+
+      get action_auth.identity_email_verification_path(sid: sid)
+      assert_response :success
+
+      patch action_auth.identity_email_verification_path, params: { sid: sid, password: "not the password" }
+      assert_response :unprocessable_entity
+
+      patch action_auth.identity_email_verification_path, params: { sid: sid, password: FIXTURE_PASSWORD }
+      assert_redirected_to action_auth.sign_in_path
+      assert @user.reload.verified
+    end
+
+    test "a password reset that verifies an account works, with no connected accounts to remove yet" do
+      @user.update!(verified: false)
+
+      patch action_auth.identity_password_reset_path,
+        params: { sid: @user.generate_token_for(:password_reset), password: STRONG_PASSWORD, password_confirmation: STRONG_PASSWORD }
+
+      assert_redirected_to action_auth.sign_in_path
+      assert @user.reload.verified
+    end
+
     test "password resets work" do
       post action_auth.identity_password_reset_path, params: { email: @user.email }
       assert_enqueued_emails 1

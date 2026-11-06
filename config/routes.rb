@@ -6,7 +6,7 @@ ActionAuth::Engine.routes.draw do
 
   namespace :identity do
     resource :email,              only: [:edit, :update]
-    resource :email_verification, only: [:show, :create]
+    resource :email_verification, only: [:show, :create, :update]
     resource :password_reset,     only: [:new, :edit, :create, :update]
   end
   resource  :password, only: [:edit, :update]

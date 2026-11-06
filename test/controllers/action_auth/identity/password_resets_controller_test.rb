@@ -3,7 +3,7 @@ require "test_helper"
 class ActionAuth::Identity::PasswordResetsControllerTest < ActionDispatch::IntegrationTest
   include ActionAuth::Engine.routes.url_helpers
 
-  GENERIC_RESPONSE = "If that email address has been verified, you'll receive reset instructions shortly."
+  GENERIC_RESPONSE = "If there's an account with that email address, you'll receive reset instructions shortly."
 
   setup do
     @user = action_auth_users(:one)
@@ -39,12 +39,12 @@ class ActionAuth::Identity::PasswordResetsControllerTest < ActionDispatch::Integ
     assert_equal GENERIC_RESPONSE, flash[:notice]
   end
 
-  test "an unverified address gets the same response and no email" do
+  test "an unverified address gets the same response and the email, since finishing a reset proves the address" do
     @user.update!(verified: false)
 
     post identity_password_reset_url, params: { email: @user.email }
 
-    assert_enqueued_emails 0
+    assert_enqueued_emails 1
     assert_redirected_to sign_in_url
     assert_equal GENERIC_RESPONSE, flash[:notice]
   end
@@ -91,6 +91,68 @@ class ActionAuth::Identity::PasswordResetsControllerTest < ActionDispatch::Integ
     reset_password
 
     assert_not ActionAuth::Session.exists?(session.id)
+  end
+
+  test "a verified account keeps its connected accounts" do
+    connected_account = @user.connected_accounts.create!(provider: "developer", uid: "12345")
+
+    reset_password
+
+    assert @user.connected_accounts.exists?(connected_account.id)
+  end
+
+  test "finishing a reset on an unverified account verifies it and removes everything from before" do
+    @user.update!(verified: false)
+    session = @user.sessions.create!
+    connected_account = @user.connected_accounts.create!(provider: "developer", uid: "12345")
+
+    reset_password
+
+    assert_redirected_to sign_in_url
+    assert @user.reload.verified
+    assert_not ActionAuth::Session.exists?(session.id)
+    assert_not ActionAuth::ConnectedAccount.exists?(connected_account.id)
+    assert User.authenticate_by(email: @user.email, password: STRONG_PASSWORD)
+  end
+
+  test "a reset that's rejected on an unverified account changes nothing" do
+    @user.update!(verified: false)
+    session = @user.sessions.create!
+    connected_account = @user.connected_accounts.create!(provider: "developer", uid: "12345")
+
+    reset_password(password: "alllowercaseletters")
+
+    assert_response :unprocessable_entity
+    assert_select "p", /will also verify it/
+    assert_not @user.reload.verified
+    assert ActionAuth::Session.exists?(session.id)
+    assert ActionAuth::ConnectedAccount.exists?(connected_account.id)
+  end
+
+  test "the form says what a reset will also do to an unverified account" do
+    @user.update!(verified: false)
+
+    get edit_identity_password_reset_url(sid: @user.generate_token_for(:password_reset))
+
+    assert_select "p", /will also verify it/
+  end
+
+  test "the form doesn't say that to a verified account" do
+    get edit_identity_password_reset_url(sid: @user.generate_token_for(:password_reset))
+
+    assert_select "p", text: /will also verify it/, count: 0
+  end
+
+  test "a link sent to an old address stops working when the email changes" do
+    sid = @user.generate_token_for(:password_reset)
+    @user.update!(email: "changed@example.com")
+
+    reset_password(sid: sid)
+
+    assert_redirected_to new_identity_password_reset_url
+    assert_equal "That password reset link is invalid", flash[:alert]
+    assert_not @user.reload.verified
+    assert @user.authenticate_password(FIXTURE_PASSWORD)
   end
 
   test "a reset link only works once" do

@@ -22,17 +22,18 @@ user experience akin to that offered by the well-regarded Devise gem.
    - [Helper Methods](#helper-methods)
    - [Restricting and Changing Routes](#restricting-and-changing-routes)
 7. [Have I Been Pwned](#have-i-been-pwned)
-8. [Magic Links](#magic-links)
-9. [SMS Authentication](#sms-authentication)
-10. [OAuth](#oauth)
-11. [Account Lockout](#account-lockout)
-12. [Account Suspension](#account-suspension)
-13. [Account Deletion](#account-deletion)
-14. [WebAuthn](#webauthn)
-15. [Within Your Application](#within-your-application)
-16. [Customizing](#customizing)
-17. [License](#license)
-18. [Credits](#credits)
+8. [Email Verification](#email-verification)
+9. [Magic Links](#magic-links)
+10. [SMS Authentication](#sms-authentication)
+11. [OAuth](#oauth)
+12. [Account Lockout](#account-lockout)
+13. [Account Suspension](#account-suspension)
+14. [Account Deletion](#account-deletion)
+15. [WebAuthn](#webauthn)
+16. [Within Your Application](#within-your-application)
+17. [Customizing](#customizing)
+18. [License](#license)
+19. [Credits](#credits)
 
 
 ## Minimum Requirements
@@ -196,6 +197,9 @@ No new settings are required, but these may need something from you:
 - **Accounts now lock after 10 failed sign ins in a row**, for 30 minutes, and their owner is sent an email. See
   [Account Lockout](#account-lockout) to change this or turn it off. If your tests fail a sign in that many times
   for one user, they'll need `config.account_lockout_enabled = false`.
+- **Verifying an email now asks for the password.** The link opens a page with a password field. If your tests open
+  the link and expect the address to be verified, they'll need to `PATCH` the token and password instead. See
+  [Email Verification](#email-verification).
 - **The first magic link on an unverified account replaces its password**, and ends its other sessions. See
   [Magic Links](#magic-links) for why. If you run with `verify_email_on_sign_in = false`, expect it to reach most of your
   password users, because nothing else verifies them. The link's "Sign in" page warns them first, and they can use Reset
@@ -283,7 +287,7 @@ ActionAuth comes with a robust set of security features designed to protect user
 - Rate limiting on registration attempts
 - Rate limiting on password reset attempts
 - Rate limiting on WebAuthn authentication
-- Rate limiting on magic link, SMS and password reset requests, and on SMS code guesses
+- Rate limiting on magic link, SMS and password reset requests, on SMS code guesses, and on passwords entered to verify an email
 
 Rate limits are stored in `config.cache_store`, so `:null_store` turns them off. If you run several
 server processes, use a store they share, such as Solid Cache or Redis.
@@ -292,6 +296,8 @@ server processes, use a store they share, such as Solid Cache or Redis.
 - [Account lockout](#account-lockout) after repeated failed passwords or SMS codes. It's stored in the database, so it
   holds even without a working cache, and doesn't reveal who has an account.
 - [Account suspension](#account-suspension) blocks every way of signing in and ends existing sessions.
+- [Email verification](#email-verification) takes both the emailed link and the password, so nobody can get a verified
+  account on an address they don't own, and that address's owner can always take the account over.
 
 ### Multi-Factor Authentication
 - Support for WebAuthn/passkeys as a second factor
@@ -387,6 +393,18 @@ Add the `pwned` gem to your Gemfile. That's all you'll have to do to enable this
 ```ruby
 bundle add pwned
 ```
+
+## Email Verification
+
+Verifying an address takes both the link in the email and the account's password. The link shows that someone has the
+inbox, and the password shows that they're whoever set up the account. Neither is enough alone, because anyone can sign
+up with someone else's address and know the password, and that address's owner or their mail scanner can open the link
+without having signed up. Opening the link only shows a page that asks for the password.
+
+Someone who has the inbox but not the password can take over the account in either of two ways, a password reset or
+a [magic link](#magic-links). Both verify the address, end every session on the account and remove its connected OAuth
+accounts, so that nothing from before can still get in. A password reset on an account that's already verified only
+changes the password and signs out other devices, as it always has.
 
 ## Magic Links
 

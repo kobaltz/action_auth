@@ -55,6 +55,8 @@ module ActionAuth
       mail.parts.each do |part|
         token = part.body.to_s[/sid=([^"\s]+)/, 1]
         assert_equal @user, User.find_by_token_for(:email_verification, CGI.unescape(token))
+        assert_match "You'll be asked for your password", CGI.unescapeHTML(part.body.to_s)
+        assert_match "If you didn't sign up", CGI.unescapeHTML(part.body.to_s)
       end
     end
 

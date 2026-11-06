@@ -33,6 +33,22 @@ class HostParentControllerCheck < ActionDispatch::IntegrationTest
     end
   end
 
+  test "screens opened from an emailed link are reachable while signed out, and use the app's helpers" do
+    user = action_auth_users(:one)
+    user.update!(verified: false)
+
+    [
+      action_auth.identity_email_verification_path(sid: user.generate_token_for(:email_verification)),
+      action_auth.edit_identity_password_reset_path(sid: user.generate_token_for(:password_reset)),
+      action_auth.magics_sign_ins_path(token: user.generate_token_for(:magic_token))
+    ].each do |path|
+      get path
+
+      assert_response :success, "for #{path}"
+      assert_select "title", { text: "Dummy Host App" }, "for #{path}"
+    end
+  end
+
   test "coming back from an OAuth provider works while signed out" do
     OmniAuth.config.mock_auth[:developer] = OmniAuth::AuthHash.new(provider: "developer", uid: "1", info: { email: "new@example.com" })
 

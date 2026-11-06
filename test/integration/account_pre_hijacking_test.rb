@@ -25,6 +25,7 @@ class AccountPreHijackingTest < ActionDispatch::IntegrationTest
   def move_the_attackers_account_to_the_victims_address
     user = ActionAuth::User.create!(email: ATTACKER, password: STRONG_PASSWORD, verified: true)
     user.connected_accounts.create!(provider: "developer", uid: "the-attackers-account")
+    yield user if block_given?
 
     @attacker.post action_auth.sign_in_path, params: { email: ATTACKER, password: STRONG_PASSWORD }
     @attacker.patch action_auth.identity_email_path, params: { email: VICTIM, password_challenge: STRONG_PASSWORD }
@@ -188,6 +189,70 @@ class AccountPreHijackingTest < ActionDispatch::IntegrationTest
 
     assert_signed_in
     assert password_signs_in?(NEW_PASSWORD)
+  end
+
+  test "opening the verification link changes nothing, so a mail scanner can't make the password work" do
+    user = sign_up_with_the_victims_address
+
+    open_session.get action_auth.identity_email_verification_path(sid: user.generate_token_for(:email_verification))
+
+    assert_not user.reload.verified
+    assert_not password_signs_in?
+  end
+
+  test "the address's owner can't verify someone else's account without knowing its password" do
+    user = sign_up_with_the_victims_address
+
+    patch action_auth.identity_email_verification_path,
+      params: { sid: user.generate_token_for(:email_verification), password: "the owner has no idea" }
+
+    assert_response :unprocessable_entity
+    assert_not user.reload.verified
+    assert_not password_signs_in?
+  end
+
+  test "someone who really did sign up verifies with the link and their password" do
+    user = sign_up_with_the_victims_address
+
+    patch action_auth.identity_email_verification_path,
+      params: { sid: user.generate_token_for(:email_verification), password: STRONG_PASSWORD }
+
+    assert user.reload.verified
+    assert password_signs_in?
+  end
+
+  test "the address's owner can take the account with a reset link, which removes everything from before" do
+    user = move_the_attackers_account_to_the_victims_address
+
+    assert_enqueued_emails 1 do
+      post action_auth.identity_password_reset_path, params: { email: VICTIM }
+    end
+
+    patch action_auth.identity_password_reset_path, params: {
+      sid: user.generate_token_for(:password_reset),
+      password: NEW_PASSWORD,
+      password_confirmation: NEW_PASSWORD
+    }
+
+    assert user.reload.verified
+    assert_not attackers_session_works?
+    assert_not password_signs_in?
+    assert password_signs_in?(NEW_PASSWORD)
+    assert_empty user.connected_accounts.reload
+  end
+
+  test "a reset link the attacker sent themselves before moving the account can't claim the address" do
+    reset_link = nil
+    user = move_the_attackers_account_to_the_victims_address do |account|
+      reset_link = account.generate_token_for(:password_reset)
+    end
+
+    @attacker.patch action_auth.identity_password_reset_path,
+      params: { sid: reset_link, password: NEW_PASSWORD, password_confirmation: NEW_PASSWORD }
+
+    assert_equal action_auth.new_identity_password_reset_path, URI(@attacker.response.location).path
+    assert_not user.reload.verified
+    assert user.authenticate_password(STRONG_PASSWORD)
   end
 
   test "a security key stays and is still asked for, since an inbox alone mustn't remove a second factor" do

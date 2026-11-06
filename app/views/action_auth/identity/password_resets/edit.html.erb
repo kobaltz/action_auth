@@ -2,6 +2,13 @@
 
 <h1>Reset your password</h1>
 
+<% unless @user.verified? %>
+  <p>
+    This email address hasn't been verified yet, so resetting the password will also verify it and disconnect any
+    connected accounts.
+  </p>
+<% end %>
+
 <%= form_with(url: identity_password_reset_path, method: :patch) do |form| %>
   <%= render "action_auth/shared/errors", record: @user %>
 
