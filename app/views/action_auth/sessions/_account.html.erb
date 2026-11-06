@@ -1,8 +1,11 @@
 <h2>Account</h2>
-<div class="mb-3">
-  <%= link_to "Change email", edit_identity_email_path %> |
-  <%= link_to "Change password", edit_password_path %>
-</div>
+<%# Both of these ask for the current password, which a placeholder account can't know. %>
+<% if ActionAuth::Current.user.password_usable? %>
+  <div class="mb-3">
+    <%= link_to "Change email", edit_identity_email_path %> |
+    <%= link_to "Change password", edit_password_path %>
+  </div>
+<% end %>
 
 <% if ActionAuth.configuration.allow_user_deletion? %>
   <details class="mb-3">
@@ -20,7 +23,7 @@
         <%= form.submit "Permanently delete my account", class: "btn btn-danger" %>
       <% end %>
     <% else %>
-      <p>To confirm it's you, this only works within 10 minutes of signing in with a new SMS code.</p>
+      <p>To confirm it's you, this only works within 10 minutes of signing in with <%= ActionAuth::Current.user.fresh_sign_in_method %>.</p>
       <%= button_to "Permanently delete my account", users_path, method: :delete, class: "btn btn-danger" %>
     <% end %>
   </details>

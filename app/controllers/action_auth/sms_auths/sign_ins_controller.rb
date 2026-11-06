@@ -13,29 +13,40 @@ module ActionAuth
     def show
     end
 
+    # The rate limits above depend on the app's cache. Lockout is the backstop on
+    # guessing a code that doesn't, and it says so whether or not the code is right.
     def create
-      user = user_for_submitted_code
+      user = user_for_phone_number
 
-      if user
+      if user&.account_locked?
+        instance_exec(&TOO_MANY_ATTEMPTS)
+      elsif user && submitted_code_matches?(user)
         user.update(verified: true, sms_code: nil, sms_code_sent_at: nil)
         cookies.delete(:sms_auth_phone_number, action_auth_session_cookie_options)
         complete_sign_in(user, notice: "Signed In")
       else
+        record_failed_sign_in(user) if string_param(:sms_code).present?
         redirect_to sign_in_path, alert: "Authentication failed, please try again."
       end
     end
 
     private
 
+    # Never searches for a blank number, which would match every account without one.
+    def user_for_phone_number
+      phone_number = cookies.signed[:sms_auth_phone_number]
+
+      User.find_by(phone_number: phone_number) if phone_number.present?
+    end
+
     # Compares one code in Ruby rather than putting it in the query, where an
     # array parameter would let one request try thousands of codes.
-    def user_for_submitted_code
-      phone_number = cookies.signed[:sms_auth_phone_number]
+    def submitted_code_matches?(user)
       code = string_param(:sms_code)
-      return unless phone_number.present? && code.present?
+      return false unless code.present? && user.sms_code.present?
+      return false unless user.sms_code_sent_at&.between?(CODE_LIFETIME.ago, Time.current)
 
-      user = User.find_by(phone_number: phone_number, sms_code_sent_at: CODE_LIFETIME.ago..Time.current)
-      user if user&.sms_code.present? && ActiveSupport::SecurityUtils.secure_compare(user.sms_code, code)
+      ActiveSupport::SecurityUtils.secure_compare(user.sms_code, code)
     end
   end
 end

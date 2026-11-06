@@ -24,12 +24,15 @@ user experience akin to that offered by the well-regarded Devise gem.
 7. [Have I Been Pwned](#have-i-been-pwned)
 8. [Magic Links](#magic-links)
 9. [SMS Authentication](#sms-authentication)
-10. [Account Deletion](#account-deletion)
-11. [WebAuthn](#webauthn)
-12. [Within Your Application](#within-your-application)
-13. [Customizing](#customizing)
-14. [License](#license)
-15. [Credits](#credits)
+10. [OAuth](#oauth)
+11. [Account Lockout](#account-lockout)
+12. [Account Suspension](#account-suspension)
+13. [Account Deletion](#account-deletion)
+14. [WebAuthn](#webauthn)
+15. [Within Your Application](#within-your-application)
+16. [Customizing](#customizing)
+17. [License](#license)
+18. [Credits](#credits)
 
 
 ## Minimum Requirements
@@ -101,6 +104,15 @@ ActionAuth.configure do |config|
 
   config.insert_cookie_domain = false
 
+  # On by default. See "Account Lockout" and "Account Suspension" below
+  config.account_lockout_enabled = true
+  config.account_lockout_max_attempts = 10
+  config.account_lockout_duration = 30.minutes
+  config.account_suspension_enabled = true
+
+  # Needs the omniauth gems. See "OAuth" below
+  config.oauth_provider :github, ENV["GITHUB_CLIENT_ID"], ENV["GITHUB_CLIENT_SECRET"], scope: "user:email"
+
   # See "Customizing" below
   config.layout = "application" # Use your app's layout
   config.parent_controller = "ApplicationController" # Lets your layout use your app's helpers
@@ -156,6 +168,12 @@ These settings were added in 1.7.0 or later:
 
 | Setting | Added in | Default | What it does |
 | --- | --- | --- | --- |
+| `account_lockout_enabled` | After 1.8.9 | `true` | Turns on [Account Lockout](#account-lockout). Does nothing until the new migration has run. |
+| `account_lockout_max_attempts` | After 1.8.9 | `10` | How many failures in a row lock an account. |
+| `account_lockout_duration` | After 1.8.9 | `30.minutes` | How long a lock lasts. `nil` keeps it until it's lifted. |
+| `account_suspension_enabled` | After 1.8.9 | `true` | Turns on [Account Suspension](#account-suspension). Nobody is suspended unless your app says so. |
+| `oauth_provider` | After 1.8.9 | None | Adds a provider for [OAuth](#oauth). Nothing changes until you add one. Set it in the `ActionAuth.configure` block, not in `after_initialize`. |
+| `oauth_enabled` | After 1.8.9 | `defined?(OmniAuth)` | Turns [OAuth](#oauth) off even with providers configured. |
 | `layout` | After 1.8.9 | `nil` (ActionAuth's layout) | The layout for ActionAuth's screens. See [Customizing](#customizing). |
 | `parent_controller` | After 1.8.9 | `"ActionController::Base"` | What ActionAuth's controllers inherit from. Use `"ApplicationController"` if your layout calls your app's helpers. Set it in the `ActionAuth.configure` block, not in `after_initialize`. |
 | `after_sign_in_path` | After 1.8.9 | `nil` (your root path) | Where people go after signing in. A path or a Proc. |
@@ -171,8 +189,17 @@ These settings were added in 1.7.0 or later:
 No new settings are required, but these may need something from you:
 
 - **Rails 7.2 or later is required.**
-- **There's a new migration**, which adds `users.magic_link_used_at`. Run it as part of your deploy, before the
-  new code takes requests. Until it has run, requesting a magic link raises an error that tells you to run it.
+- **There are new migrations**, which add columns to `users` and a new `action_auth_connected_accounts` table. Run
+  them as part of your deploy, before the new code takes requests. Until they have run, requesting a magic link
+  raises an error that tells you to run them. Everything else keeps working, but account lockout and suspension do
+  nothing yet.
+- **Accounts now lock after 10 failed sign ins in a row**, for 30 minutes, and their owner is sent an email. See
+  [Account Lockout](#account-lockout) to change this or turn it off. If your tests fail a sign in that many times
+  for one user, they'll need `config.account_lockout_enabled = false`.
+- **The first magic link on an unverified account replaces its password**, and ends its other sessions. See
+  [Magic Links](#magic-links) for why. If you run with `verify_email_on_sign_in = false`, expect it to reach most of your
+  password users, because nothing else verifies them. The link's "Sign in" page warns them first, and they can use Reset
+  Password afterwards.
 - **Your tests may need a setting.** Password complexity is no longer skipped in the test environment. If your
   tests create users with simple passwords, add this to your initializer, or use stronger passwords:
 
@@ -210,7 +237,7 @@ These are the planned features for ActionAuth. The ones that are checked off are
 
 ✅ - Magic Links
 
-⏳ - OAuth with Google, Facebook, Github, Twitter, etc.
+✅ - OAuth with Google, Facebook, Github, Twitter, etc.
 
 ✅ - SMS Authentication
 
@@ -226,9 +253,9 @@ These are the planned features for ActionAuth. The ones that are checked off are
 
 ✅ - HTTPS-only cookies in production
 
-⏳ - Account Lockout
+✅ - Account Lockout
 
-⏳ - Account Suspension
+✅ - Account Suspension
 
 ⏳ - Account Impersonation
 
@@ -260,6 +287,11 @@ ActionAuth comes with a robust set of security features designed to protect user
 
 Rate limits are stored in `config.cache_store`, so `:null_store` turns them off. If you run several
 server processes, use a store they share, such as Solid Cache or Redis.
+
+### Account Protection
+- [Account lockout](#account-lockout) after repeated failed passwords or SMS codes. It's stored in the database, so it
+  holds even without a working cache, and doesn't reveal who has an account.
+- [Account suspension](#account-suspension) blocks every way of signing in and ends existing sessions.
 
 ### Multi-Factor Authentication
 - Support for WebAuthn/passkeys as a second factor
@@ -367,6 +399,16 @@ A link expires after 20 minutes and only works once. Using one also uses up any 
 account. Opening a link shows a page with a "Sign in" button rather than signing in straight away, because
 mail scanners and link previews open the links in an email and would otherwise use them up first.
 
+The first time a link is used on an account whose email isn't verified, it also replaces the password, ends every
+session on the account and removes its connected OAuth accounts. Until then nobody has shown that the address is
+theirs. Anyone can sign up with someone else's address, or change their own account to it, and this stops them from
+keeping access once the address's real owner starts using the account. The page with the "Sign in" button says this
+first, and the person can use Reset Password afterwards to choose a new password.
+
+Accounts that are already verified aren't affected. Security keys are kept and are still asked for, because removing them
+would let someone holding only the inbox get past a second factor. If someone else's key is on the account, that
+means its owner can't get past that step.
+
 ## SMS Authentication
 
 SMS Authentication is disabled by default. The purpose of this is to allow users to authenticate
@@ -411,6 +453,165 @@ Rails.application.config.after_initialize do
 end
 ```
 
+## OAuth
+
+OAuth lets people sign in with an account they have on another site, such as Google, Facebook, GitHub or X. It's built on
+[OmniAuth](https://github.com/omniauth/omniauth), so any OmniAuth strategy works.
+
+Like WebAuthn, this is opt in. The gems aren't dependencies of ActionAuth, so apps that don't want this don't carry them,
+and nothing changes until you add a provider. If your app already uses OmniAuth for something else, it's left alone.
+
+#### Add the gems
+
+```bash
+bundle add omniauth omniauth-rails_csrf_protection
+```
+
+Then add a gem for each provider you want.
+
+| Provider | Gem | Name for `oauth_provider` |
+| --- | --- | --- |
+| Google | `omniauth-google-oauth2` | `:google_oauth2` |
+| GitHub | `omniauth-github` | `:github` |
+| Facebook | `omniauth-facebook` | `:facebook` |
+| X (Twitter) | `omniauth-twitter2` | `:twitter2` |
+
+`omniauth-rails_csrf_protection` isn't optional. Without it every sign in fails, because OmniAuth's own CSRF check
+doesn't understand the tokens Rails puts in forms.
+
+#### Run the migration
+
+```bash
+bin/rails action_auth:install:migrations
+bin/rails db:migrate
+```
+
+#### Add your providers
+
+`oauth_provider` takes the same arguments as OmniAuth's `provider`. Set these in the `ActionAuth.configure` block, not in
+`after_initialize`, because the routes depend on them.
+
+```ruby
+# config/initializers/action_auth.rb
+ActionAuth.configure do |config|
+  config.oauth_provider :google_oauth2, ENV["GOOGLE_CLIENT_ID"], ENV["GOOGLE_CLIENT_SECRET"]
+  config.oauth_provider :github, ENV["GITHUB_CLIENT_ID"], ENV["GITHUB_CLIENT_SECRET"], scope: "user:email"
+  config.oauth_provider :facebook, ENV["FACEBOOK_APP_ID"], ENV["FACEBOOK_APP_SECRET"]
+  config.oauth_provider :twitter2, ENV["TWITTER_CLIENT_ID"], ENV["TWITTER_CLIENT_SECRET"],
+    scope: "tweet.read users.read",
+    callback_url: "https://example.com/action_auth/auth/twitter2/callback"
+end
+
+# Callback URLs otherwise come from the request's Host header, which can be forged.
+OmniAuth.config.full_host = "https://example.com"
+```
+
+- GitHub needs `scope: "user:email"` to see the address of someone who keeps theirs private.
+- X needs a `scope`, and `callback_url` too, unless ActionAuth is mounted at `/`. `omniauth-twitter2` otherwise adds the
+  mount path twice, and X refuses the sign in.
+- The buttons say "Continue with" and the provider's name. To change that name, add `label: "Work Account"`.
+
+Each provider needs to know the callback URL, which is your mount path, then `auth`, the name, and `callback`. For example,
+`https://example.com/action_auth/auth/github/callback`.
+
+Providers appear on the sign in and sign up screens, and in a new section of the management screen at `user_sessions_path`.
+
+#### What happens when someone signs in
+
+| Situation | Result |
+| --- | --- |
+| They've connected this account before | They're signed in, whatever email address the provider now reports. A security key is still required if they have one. |
+| They're new here | They get a new account using the provider's email address. It has a random password, which they can reset if they want one. |
+| They're new here, and the provider doesn't share an email address, or says it's unverified | They get a new account with a placeholder address, as with SMS. They can only sign in through the provider. X usually works like this. |
+| Their email address matches an existing account | They **aren't** signed in. They're told to sign in another way, then connect the provider from the management screen. |
+| They're already signed in | The provider is connected to the account they're signed in to. |
+| The provider is connected to someone else | They're told, and nothing changes. |
+
+An email address match never signs anyone in, because that would rely on every provider having verified the address, and
+on nobody having signed up here with an address they don't own. For the same reason, only add providers that verify
+email addresses, or that don't share them. New accounts take the address the provider gives.
+
+Disconnecting from the management screen works unless it's the only way left to sign in to that account. Only the
+provider's name for the account is stored, not its access tokens. If you need those, for example to call the provider's
+API, that's currently something your app has to do itself.
+
+#### Your own views
+
+If you've copied `sessions/new` or `registrations/new` into your app, add the buttons where you want them.
+
+```erb
+<%= render "action_auth/shared/oauth_buttons" %>
+```
+
+To style them yourself, use `action_auth_oauth_providers`. These have to be POST requests, and Turbo has to stay out of
+them, because the response redirects to another site.
+
+```erb
+<% action_auth_oauth_providers.each do |label, path| %>
+  <%= button_to "Continue with #{label}", path, form: { data: { turbo: false } }, class: "btn" %>
+<% end %>
+```
+
+Similarly, add `render "action_auth/sessions/connected_accounts"` to a copied `sessions/index`.
+
+#### Good to know
+
+- If your app has a Content Security Policy that sets `form-action`, it needs to allow your providers' sites, or browsers
+  will block the redirect after the button is pressed.
+- In development, OmniAuth raises an error when something goes wrong at the provider, such as pressing cancel on its page.
+  Elsewhere it goes back to the sign in screen with a message. See `OmniAuth.config.failure_raise_out_environments`.
+- To test your app without a real provider, use [OmniAuth's test mode](https://github.com/omniauth/omniauth/wiki/Integration-Testing).
+
+## Account Lockout
+
+Account lockout is on by default. After 10 failed passwords or SMS codes in a row, an account is locked for 30 minutes.
+
+```ruby
+ActionAuth.configure do |config|
+  config.account_lockout_enabled = true
+  config.account_lockout_max_attempts = 10
+  config.account_lockout_duration = 30.minutes # nil keeps it locked until it's lifted
+end
+```
+
+While an account is locked, the sign in form gives the same answer it gives to a wrong password, even if the password is
+right. Saying "locked" only when the password is right would let someone carry on guessing, and saying it to everyone would
+reveal who has an account. So that they aren't left wondering, the account's owner is sent an email when the lock
+starts, with a link to reset their password.
+
+A lock ends by itself, or as soon as they reset their password or sign in another way. Signing in also restarts the count.
+
+Only things that can be guessed are locked out. A magic link, passkey or connected OAuth account still works, and devices
+that are already signed in stay signed in. Without this, anyone who knew an email address could keep its owner out by
+failing on purpose. They can still lock password sign in that way, which is why locks are temporary. It does mean that an
+account that only has SMS, with no other way in, has to wait.
+
+From your app, you can use `user.account_locked?` and `user.unlock_account!`. To change the email, generate the
+`user_mailer` views. If the email can't be sent, the problem is logged, and the sign in form still answers as usual.
+
+This adds to [rate limiting](#rate-limiting), which is per client and depends on your cache. Lockout is per account and
+depends on your database.
+
+## Account Suspension
+
+Account suspension is on by default, but nothing happens until your app suspends someone. ActionAuth has no admin screen,
+since it doesn't know who your admins are, so call this from your own, behind your own authorization.
+
+```ruby
+user.suspend_account!   # Blocks every way of signing in, and signs them out everywhere
+user.account_suspended?
+user.unsuspend_account!
+```
+
+A suspended account can't sign in with a password, magic link, SMS code, passkey, security key or OAuth, and can't reset its
+password. They're only told it's suspended after proving who they are, such as with the right password. Everyone else gets
+the usual answers, so this doesn't reveal who has been suspended, and forms that would send something just don't send it.
+
+`suspend_account!` raises an error if it can't take effect, such as before the migration has run or with
+`config.account_suspension_enabled = false`. Setting `account_suspended_at` directly also blocks the account and ends its
+sessions on their next request, but use `suspend_account!`, so that a route constraint that reads sessions itself, like the
+one [above](#restricting-and-changing-routes-with-constraints), sees it straight away.
+
 ## Account Deletion
 
 Account deletion is a feature that is enabled by default. When a user deletes their account, the account
@@ -431,9 +632,9 @@ somewhere else in your application. Obviously, you will want to style this to fi
 ```
 
 If the password is missing or wrong, the account is kept and the user is sent to the management screen with a
-message. An account that signed in with a magic link has a random password, so it has to reset the password
-first. An account created through SMS has no password or email to reset, so instead it can delete itself within
-10 minutes of signing in with a new SMS code. It doesn't need the password field.
+message. An account that signed in with a magic link or OAuth has a random password, so it has to reset the password
+first. An account created through SMS, or through an OAuth provider that didn't share an email address, has no password or
+email to reset, so instead it can delete itself within 10 minutes of signing in again. It doesn't need the password field.
 
 ## WebAuthn
 
@@ -607,6 +808,7 @@ Inside a view, your app's routes are available as usual, and ActionAuth's helper
 
     Helper					Description
     action_auth_links			[label, path] pairs for the other auth screens, leaving out disabled features and the current page
+    action_auth_oauth_providers		[label, path] pairs for OAuth providers, which need a button rather than a link. See OAuth
     after_sign_in_path			Where signing in goes
     after_sign_out_path			Where signing out goes
     current_user, current_session		The signed in user and their session
@@ -630,8 +832,10 @@ scope and delete the files you don't need, or create the file yourself.
     shared/_flash.html.erb			Flash messages
     shared/_errors.html.erb			Form errors
     shared/_links.html.erb			Links between the sign in, sign up and similar screens
+    shared/_oauth_buttons.html.erb		OAuth buttons on the sign in and sign up screens
     sessions/_sessions.html.erb		List of signed in devices on the management screen
     sessions/_security_keys.html.erb		List of security keys on the management screen
+    sessions/_connected_accounts.html.erb	List of connected OAuth accounts on the management screen
     sessions/_account.html.erb		Change email, change password and delete account
 
 #### Flash messages

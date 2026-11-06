@@ -27,16 +27,22 @@ module ActionAuth
         end
       end
 
-      code = SecureRandom.random_number(100_000..999_999)
-      @user.update!(sms_code: code, sms_code_sent_at: Time.current)
+      # There's no point paying for a code that couldn't be used. The answer stays the
+      # same, so this form doesn't reveal which numbers are locked or suspended.
+      send_new_code unless @user.account_locked? || @user.account_suspended?
       cookies.signed[:sms_auth_phone_number] = action_auth_session_cookie_options.merge(value: @user.phone_number)
-
-      send_code(@user.phone_number, code)
 
       redirect_to sms_auths_sign_ins_path, notice: "Check your phone for a SMS Code."
     end
 
     private
+
+    def send_new_code
+      code = SecureRandom.random_number(100_000..999_999)
+      @user.update!(sms_code: code, sms_code_sent_at: Time.current)
+
+      send_code(@user.phone_number, code)
+    end
 
     def send_code(phone_number, code)
       sender = ActionAuth.configuration.sms_send_class

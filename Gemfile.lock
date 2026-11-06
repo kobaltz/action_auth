@@ -111,6 +111,8 @@ GEM
       net-http (~> 0.5)
     globalid (1.4.0)
       activesupport (>= 6.1)
+    hashie (5.2.0)
+      logger
     i18n (1.15.2)
       concurrent-ruby (~> 1.0)
     io-console (0.9.5)
@@ -173,6 +175,14 @@ GEM
       racc (~> 1.4)
     nokogiri (1.19.7-x86_64-linux-musl)
       racc (~> 1.4)
+    omniauth (2.3.1)
+      hashie (>= 3.5.2)
+      logger
+      rack (>= 2.2.8)
+      rack-protection (>= 2.2.0)
+    omniauth-rails_csrf_protection (2.0.1)
+      actionpack (>= 4.2)
+      omniauth (~> 2.0)
     openssl (4.0.2)
     openssl-signature_algorithm (1.3.0)
       openssl (> 2.0)
@@ -186,6 +196,10 @@ GEM
     pwned (2.4.1)
     racc (1.8.1)
     rack (3.2.8)
+    rack-protection (4.2.1)
+      base64 (>= 0.1.0)
+      logger (>= 1.6.0)
+      rack (>= 3.0.0, < 4)
     rack-session (2.1.2)
       base64 (>= 0.1.0)
       rack (>= 3.0.0)
@@ -298,6 +312,8 @@ DEPENDENCIES
   action_auth!
   letter_opener
   minitest-stub_any_instance
+  omniauth
+  omniauth-rails_csrf_protection
   puma
   pwned
   simplecov

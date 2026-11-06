@@ -42,4 +42,14 @@ ActionAuth::Engine.routes.draw do
       resource :requests, only: [:new, :create]
     end
   end
+
+  if ActionAuth.configuration.oauth_enabled?
+    # OmniAuth answers POST auth/:provider for every configured provider before
+    # the router sees it. This route names the path, and catches any other provider.
+    post  "auth/:provider",          to: "provider_callbacks#failure", as: :oauth_request
+    get   "auth/failure",            to: "provider_callbacks#failure", as: :oauth_failure
+    match "auth/:provider/callback", to: "provider_callbacks#create",  as: :oauth_callback, via: [:get, :post]
+
+    resources :connected_accounts, only: [:destroy]
+  end
 end

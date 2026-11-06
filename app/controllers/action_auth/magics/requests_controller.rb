@@ -23,7 +23,7 @@ module ActionAuth
         end
       end
 
-      UserMailer.with(user: user).magic_link.deliver_later
+      UserMailer.with(user: user).magic_link.deliver_later unless user.account_suspended?
 
       redirect_to sign_in_path, notice: "Check your email for a magic link."
     end

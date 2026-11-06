@@ -46,6 +46,18 @@ class InstallTaskTest < ActiveSupport::TestCase
     assert @root.join("config/initializers/action_auth.rb").exist?
   end
 
+  test "the generated initializer documents lockout, suspension and OAuth, without turning anything on" do
+    run_install
+    initializer = @root.join("config/initializers/action_auth.rb").read
+
+    %w[account_lockout_enabled account_lockout_max_attempts account_lockout_duration
+      account_suspension_enabled oauth_provider].each do |setting|
+      assert_includes initializer, "#   config.#{setting}"
+    end
+
+    assert initializer.lines.all? { |line| line.start_with?("#") || line.strip.empty? }
+  end
+
   test "the generated initializer documents the customization settings" do
     run_install
 

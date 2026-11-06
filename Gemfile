@@ -24,3 +24,7 @@ gem "webauthn"
 gem "pwned"
 
 gem "twilio-ruby"
+
+# Add these gems for OAuth support
+gem "omniauth"
+gem "omniauth-rails_csrf_protection"

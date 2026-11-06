@@ -23,6 +23,20 @@ module ActionAuth
       app.config.assets.precompile << "action_auth_manifest.js" if defined?(Sprockets::Rails)
     end
 
+    # OmniAuth runs inside the engine, so its paths follow wherever the app mounts
+    # ActionAuth and the rest of the app never goes through it.
+    initializer 'action_auth.oauth', after: :load_config_initializers do
+      next unless ActionAuth.configuration.oauth_enabled?
+
+      OmniAuth.config.logger = Rails.logger
+
+      config.middleware.use(OmniAuth::Builder) do
+        ActionAuth.configuration.oauth_providers.each do |oauth|
+          provider(oauth.strategy, *oauth.args, **oauth.options)
+        end
+      end
+    end
+
     # An app that keeps the generated, fully commented out initializer never
     # calls ActionAuth.configure, but still gets WebAuthn routes if the gem is
     # installed. Those need the origin set too.

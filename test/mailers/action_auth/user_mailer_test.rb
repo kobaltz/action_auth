@@ -18,6 +18,28 @@ module ActionAuth
       end
     end
 
+    test "account_locked says how long for and how to get back in, in both formats" do
+      mail = ActionAuth::UserMailer.with(user: @user).account_locked
+
+      assert_equal "Your account has been locked", mail.subject
+      assert_equal [@user.email], mail.to
+      assert_equal 2, mail.parts.size
+      mail.parts.each do |part|
+        assert_match "30 minutes", part.body.to_s
+        assert_match "/identity/password_reset/new", part.body.to_s
+      end
+      assert_no_match(/<\w+>/, mail.text_part.body.to_s)
+    end
+
+    test "account_locked doesn't promise an end to a lock that has none" do
+      with_action_auth_config(account_lockout_duration: nil) do
+        mail = ActionAuth::UserMailer.with(user: @user).account_locked
+
+        assert_no_match(/for the next/, mail.text_part.body.to_s)
+        assert_no_match(/for the next/, mail.html_part.body.to_s)
+      end
+    end
+
     test "the text version of the reset email has no HTML in it" do
       mail = ActionAuth::UserMailer.with(user: @user).password_reset
 

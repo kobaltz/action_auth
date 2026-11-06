@@ -9,4 +9,8 @@
   <%= render "action_auth/sessions/security_keys" %>
 <% end %>
 
+<% if ActionAuth.configuration.oauth_enabled? && ActionAuth::ConnectedAccount.table_exists? %>
+  <%= render "action_auth/sessions/connected_accounts" %>
+<% end %>
+
 <%= render "action_auth/sessions/account" %>

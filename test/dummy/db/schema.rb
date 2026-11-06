@@ -10,7 +10,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_11_05_120000) do
+ActiveRecord::Schema[7.2].define(version: 2026_11_05_130100) do
+  create_table "action_auth_connected_accounts", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "provider", null: false
+    t.string "uid", null: false
+    t.string "display_name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["provider", "uid"], name: "index_action_auth_connected_accounts_on_provider_and_uid", unique: true
+    t.index ["user_id"], name: "index_action_auth_connected_accounts_on_user_id"
+  end
+
   create_table "posts", force: :cascade do |t|
     t.integer "user_id", null: false
     t.string "title"
@@ -39,6 +50,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_11_05_120000) do
     t.string "sms_code"
     t.datetime "sms_code_sent_at"
     t.datetime "magic_link_used_at"
+    t.integer "failed_sign_in_attempts", default: 0, null: false
+    t.datetime "account_locked_at"
+    t.datetime "account_suspended_at"
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
@@ -55,6 +69,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_11_05_120000) do
     t.index ["user_id"], name: "index_webauthn_credentials_on_user_id"
   end
 
+  add_foreign_key "action_auth_connected_accounts", "users", on_delete: :cascade
   add_foreign_key "posts", "users"
   add_foreign_key "sessions", "users"
   add_foreign_key "webauthn_credentials", "users"

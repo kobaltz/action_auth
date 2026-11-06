@@ -1,0 +1,5 @@
+<% action_auth_oauth_providers.each do |label, path| %>
+  <div class="mb-3">
+    <%= button_to "Continue with #{label}", path, form: { data: { turbo: false } }, class: "btn btn-primary" %>
+  </div>
+<% end %>

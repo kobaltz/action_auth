@@ -1,0 +1,32 @@
+<% connected_accounts = current_user.connected_accounts.order(:created_at).to_a %>
+
+<h2>Connected Accounts</h2>
+
+<% if connected_accounts.any? %>
+  <table class="action-auth--table">
+    <thead>
+      <tr>
+        <th>Provider</th>
+        <th>Account</th>
+        <th nowrap>Connected On</th>
+        <th nowrap></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% connected_accounts.each do |connected_account| %>
+        <%= content_tag :tr, id: dom_id(connected_account) do %>
+          <td><%= connected_account.provider_label %></td>
+          <td><%= connected_account.display_name %></td>
+          <td nowrap><%= connected_account.created_at.strftime('%B %d, %Y') %></td>
+          <td nowrap><%= button_to "Disconnect", connected_account_path(connected_account), method: :delete, class: "btn btn-primary" %></td>
+        <% end %>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>
+
+<% ActionAuth.configuration.oauth_providers.reject { |oauth| connected_accounts.any? { |account| account.provider == oauth.key } }.each do |oauth| %>
+  <div class="mb-3">
+    <%= button_to "Connect #{oauth.label}", oauth_request_path(oauth.key), form: { data: { turbo: false } }, class: "btn btn-primary" %>
+  </div>
+<% end %>

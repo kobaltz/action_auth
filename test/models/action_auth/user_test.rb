@@ -10,6 +10,52 @@ module ActionAuth
       assert @user.valid?
     end
 
+    test "two simultaneous failures both count, and only one of them locks the account" do
+      user = action_auth_users(:one)
+      user.update_columns(failed_sign_in_attempts: 8)
+      first = User.find(user.id)
+      second = User.find(user.id)
+
+      assert_not first.register_failed_sign_in
+      assert second.register_failed_sign_in, "reached the limit, even though this copy was loaded with 8"
+
+      assert_equal 10, user.reload.failed_sign_in_attempts
+      assert user.account_locked?
+    end
+
+    test "only one of two simultaneous failures reports locking the account, so only one email goes out" do
+      user = action_auth_users(:one)
+      user.update_columns(failed_sign_in_attempts: 9)
+      first = User.find(user.id)
+      second = User.find(user.id)
+
+      assert first.register_failed_sign_in
+      assert_not second.register_failed_sign_in
+    end
+
+    test "a failure loaded just before someone else's lock doesn't clear that lock" do
+      user = action_auth_users(:one)
+      stale = User.find(user.id)
+      user.update_columns(failed_sign_in_attempts: 10, account_locked_at: Time.current)
+
+      stale.register_failed_sign_in
+
+      assert user.reload.account_locked?
+    end
+
+    test "unlocking doesn't write when there's nothing to unlock" do
+      user = action_auth_users(:one)
+
+      assert_no_queries { user.unlock_account! }
+    end
+
+    test "the app's own columns and methods with common names aren't touched" do
+      assert_empty User.column_names & %w[locked_at failed_attempts suspended_at]
+      %i[locked? suspended? unlock! suspend! unsuspend!].each do |name|
+        assert_not User.method_defined?(name), "#{name} would hide an app's own method or column"
+      end
+    end
+
     test "email should be present" do
       @user.email = "     "
       assert_not @user.valid?
@@ -234,6 +280,66 @@ module ActionAuth
       user.update_column(:email, "not an email address")
 
       assert user.reload.claim_magic_link
+    end
+
+    test "the click that loses doesn't replace the password a second time" do
+      user = action_auth_users(:one)
+      token = user.generate_token_for(:magic_token)
+      first_click = User.find_by_token_for(:magic_token, token)
+      second_click = User.find_by_token_for(:magic_token, token)
+      assert first_click.claim_magic_link
+      digest = user.reload.password_digest
+
+      assert_not second_click.claim_magic_link
+
+      assert_equal digest, user.reload.password_digest
+    end
+
+    test "a claim that can't finish leaves everything as it was, so that trying again still replaces the password" do
+      user = action_auth_users(:one)
+      other_device = user.sessions.create!
+
+      stub_class_method(ConnectedAccount, :table_exists?, -> { raise "the database went away" }) do
+        assert_raises(RuntimeError) { user.claim_magic_link }
+      end
+
+      user.reload
+      assert_not user.verified
+      assert_nil user.magic_link_used_at
+      assert user.authenticate_password(FIXTURE_PASSWORD)
+      assert user.sessions.exists?(other_device.id)
+    end
+
+    test "a claim doesn't need the connected accounts table yet" do
+      user = action_auth_users(:one)
+
+      stub_class_method(ConnectedAccount, :table_exists?, false) do
+        assert user.claim_magic_link
+      end
+
+      assert_not user.authenticate_password(FIXTURE_PASSWORD)
+    end
+
+    test "an empty verified column counts as unverified" do
+      user = action_auth_users(:one)
+      user.update_column(:verified, nil)
+
+      assert user.reload.claim_magic_link
+
+      assert user.verified
+      assert_not user.authenticate_password(FIXTURE_PASSWORD)
+    end
+
+    test "a claim is refused if the account stopped being verified after it was loaded" do
+      user = action_auth_users(:one)
+      user.update!(verified: true)
+      loaded_earlier = User.find(user.id)
+      user.update!(email: "new_address@example.com")
+
+      assert_not loaded_earlier.claim_magic_link
+
+      assert_not user.reload.verified
+      assert user.authenticate_password(FIXTURE_PASSWORD)
     end
 
     test "the password only counts as usable when it could be known" do

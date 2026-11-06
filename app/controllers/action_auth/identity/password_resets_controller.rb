@@ -21,7 +21,7 @@ module ActionAuth
       # can't be used to find out who has an account.
       def create
         user = ActionAuth::User.find_by(email: string_param(:email), verified: true)
-        UserMailer.with(user: user).password_reset.deliver_later if user
+        UserMailer.with(user: user).password_reset.deliver_later if user && !user.account_suspended?
 
         redirect_to sign_in_path, notice: "If that email address has been verified, you'll receive reset instructions shortly."
       end
@@ -38,6 +38,7 @@ module ActionAuth
 
       def set_user
         @user = ActionAuth::User.find_by_token_for!(:password_reset, string_param(:sid))
+        redirect_to new_identity_password_reset_path, alert: "That password reset link is invalid" if @user.account_suspended?
       rescue StandardError
         redirect_to new_identity_password_reset_path, alert: "That password reset link is invalid"
       end

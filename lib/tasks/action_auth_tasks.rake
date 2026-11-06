@@ -22,6 +22,15 @@ namespace :action_auth do
           #   config.password_complexity_check = true
           #   config.session_timeout = 2.weeks
           #
+          #   # Both are on by default. See the ActionAuth README.
+          #   config.account_lockout_enabled = true
+          #   config.account_lockout_max_attempts = 10
+          #   config.account_lockout_duration = 30.minutes
+          #   config.account_suspension_enabled = true
+          #
+          #   # Sign in through other sites. Needs the omniauth gems, see "OAuth" in the ActionAuth README.
+          #   config.oauth_provider :github, ENV["GITHUB_CLIENT_ID"], ENV["GITHUB_CLIENT_SECRET"], scope: "user:email"
+          #
           #   # Customizing the screens. See "Customizing" in the ActionAuth README.
           #   config.layout = "application"
           #   config.parent_controller = "ApplicationController"

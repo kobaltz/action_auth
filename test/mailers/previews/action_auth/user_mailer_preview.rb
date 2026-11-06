@@ -13,6 +13,10 @@ module ActionAuth
       UserMailer.with(user: preview_user).magic_link
     end
 
+    def account_locked
+      UserMailer.with(user: preview_user).account_locked
+    end
+
     private
 
     def preview_user

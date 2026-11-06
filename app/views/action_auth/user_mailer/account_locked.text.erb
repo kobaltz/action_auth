@@ -1,0 +1,12 @@
+Hey there,
+
+There have been too many failed attempts to sign in to <%= @user.email %>,
+so we've locked sign in with a password<% if @duration %> for the next <%= distance_of_time_in_words(@duration) %><% end %>.
+
+If that was you, you can get back in now by resetting your password:
+
+<%= new_identity_password_reset_url %>
+
+If it wasn't, someone may be trying to guess your password. Those attempts failed,
+and devices you're already signed in on aren't affected. Consider changing
+your password if you use it anywhere else.

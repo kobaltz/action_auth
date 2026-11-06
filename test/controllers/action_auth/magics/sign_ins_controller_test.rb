@@ -49,16 +49,16 @@ module ActionAuth
     test "confirming signs in and verifies the email" do
       @user.update!(verified: false)
 
-      assert_difference -> { @user.sessions.count }, 1 do
-        post magics_sign_ins_url, params: { token: magic_token }
-      end
+      post magics_sign_ins_url, params: { token: magic_token }
 
       assert_redirected_to "/"
       assert @user.reload.verified
+      assert_equal 1, @user.sessions.count
       assert_signed_in
     end
 
     test "a link still works after a scanner has opened it" do
+      @user.update!(verified: true)
       token = magic_token
       2.times { get magics_sign_ins_url(token: token) }
 
@@ -109,6 +109,7 @@ module ActionAuth
     end
 
     test "either of two links can be the one that's used" do
+      @user.update!(verified: true)
       older = magic_token
       travel 1.minute
       magic_token

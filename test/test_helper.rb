@@ -40,6 +40,10 @@ module FakePwnedApi
 end
 Pwned::Password.prepend(FakePwnedApi)
 
+# Answers for the provider, without any network. Tests set what it says with
+# mock_oauth, or turn this off to run the strategy itself.
+OmniAuth.config.test_mode = true
+
 class ActiveSupport::TestCase
   # Matches the digest in test/fixtures/action_auth/users.yml. Hashes directly, so
   # it doesn't have to satisfy the complexity rules.
@@ -47,7 +51,10 @@ class ActiveSupport::TestCase
   # Satisfies every password rule, for anything that goes through validation.
   STRONG_PASSWORD = "MyV3ry$ecureP@ssw0rd!"
 
-  setup { Rails.cache.clear }
+  setup do
+    Rails.cache.clear
+    OmniAuth.config.mock_auth.clear
+  end
 
   def with_action_auth_config(**settings)
     config = ActionAuth.configuration
@@ -70,6 +77,22 @@ class ActiveSupport::TestCase
     yield
   ensure
     FakePwnedApi.error = nil
+  end
+
+  # Replaces a class method for the length of the block. The replacement can be a
+  # value, or something to call with the method's arguments.
+  def stub_class_method(klass, name, replacement)
+    singleton = klass.singleton_class
+    original = singleton.instance_method(name) if singleton.method_defined?(name, false)
+
+    singleton.define_method(name) do |*args, **options|
+      replacement.respond_to?(:call) ? replacement.call(*args, **options) : replacement
+    end
+
+    yield
+  ensure
+    singleton.remove_method(name)
+    singleton.define_method(name, original) if original
   end
 
   def with_rails_env(name)

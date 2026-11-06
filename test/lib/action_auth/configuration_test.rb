@@ -76,6 +76,65 @@ module ActionAuth
       Object.const_set(:Pwned, pwned)
     end
 
+    test 'OAuth needs the gem and a provider, so an app that only uses OmniAuth itself is left alone' do
+      assert_equal defined?(OmniAuth), @config.oauth_enabled
+      assert_empty @config.oauth_providers
+      refute @config.oauth_enabled?
+
+      @config.oauth_provider :github, "id", "secret"
+      assert @config.oauth_enabled?
+
+      omniauth = Object.send(:remove_const, :OmniAuth)
+      refute @config.oauth_enabled?
+    ensure
+      Object.const_set(:OmniAuth, omniauth) if omniauth
+    end
+
+    test 'oauth_enabled? can be turned off, including by a callable' do
+      @config.oauth_provider :github, "id", "secret"
+
+      @config.oauth_enabled = false
+      refute @config.oauth_enabled?
+
+      @config.oauth_enabled = -> { false }
+      refute @config.oauth_enabled?
+
+      @config.oauth_enabled = -> { true }
+      assert @config.oauth_enabled?
+    end
+
+    test 'oauth_provider keeps what OmniAuth needs and leaves out the label' do
+      @config.oauth_provider :github, "id", "secret", scope: "user:email", label: "Work GitHub"
+      provider = @config.oauth_providers.first
+
+      assert_equal :github, provider.strategy
+      assert_equal %w[id secret], provider.args
+      assert_equal({ scope: "user:email" }, provider.options)
+      assert_equal "Work GitHub", provider.label
+    end
+
+    test 'providers have sensible labels' do
+      %w[github google_oauth2 facebook twitter2 some_sso].zip(%w[GitHub Google Facebook X Some\ Sso]).each do |key, label|
+        @config.oauth_provider key.to_sym, "id", "secret"
+
+        assert_equal label, @config.oauth_providers.last.label
+      end
+    end
+
+    test 'the name option decides the key, which is what OmniAuth uses in its paths' do
+      @config.oauth_provider :google_oauth2, "id", "secret", name: "google"
+
+      assert_equal "google", @config.oauth_providers.first.key
+    end
+
+    test 'adding a provider again replaces it' do
+      @config.oauth_provider :github, "old", "old"
+      @config.oauth_provider :github, "new", "new"
+
+      assert_equal 1, @config.oauth_providers.size
+      assert_equal %w[new new], @config.oauth_providers.first.args
+    end
+
     test 'passkey_only? needs WebAuthn too' do
       @config.passkey_only = true
 

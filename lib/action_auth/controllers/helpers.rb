@@ -3,9 +3,12 @@ module ActionAuth
     module Helpers
       extend ActiveSupport::Concern
 
+      ACCOUNT_SUSPENDED_MESSAGE = "This account has been suspended.".freeze
+
       included do
         before_action :set_current_request_details
         before_action :check_session_timeout
+        before_action :check_action_auth_suspension
 
         def current_user; Current.user; end
         helper_method :current_user
@@ -61,6 +64,19 @@ module ActionAuth
           # Inactivity is tracked to the minute, so most requests don't need a write.
           Current.session.touch
         end
+      end
+
+      # suspend_account! already ends the account's sessions. This catches the rest:
+      # a suspension set some other way, or a sign in that finished at the same moment.
+      def check_action_auth_suspension
+        return unless Current.session && User.account_suspension_available?
+        return unless Current.session.user.account_suspended?
+
+        Rails.logger.info "Ended a session of suspended user #{Current.session.user_id}"
+        Current.session.destroy
+        Current.session = nil
+        delete_action_auth_session_cookie
+        redirect_to new_user_session_path, alert: ACCOUNT_SUSPENDED_MESSAGE
       end
 
       def action_auth_session_cookie_options

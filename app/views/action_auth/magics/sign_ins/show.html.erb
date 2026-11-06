@@ -4,4 +4,15 @@
 
 <p>You're signing in as <strong><%= @user.email %></strong>. This link only works once.</p>
 
+<%# Worded for both people who see it, who look the same from here: someone who chose a
+    password before verifying, and someone who has never had one. It's said here rather
+    than after signing in, because the app's own page may not display flash messages. %>
+<% unless @user.verified? %>
+  <p>
+    This email address hasn't been verified yet, so signing in will also replace any password set on this account,
+    sign out its other devices and disconnect any connected accounts. You can choose a new password afterwards with
+    Reset Password.
+  </p>
+<% end %>
+
 <%= button_to "Sign in", magics_sign_ins_path, params: { token: params[:token] }, class: "btn btn-primary" %>

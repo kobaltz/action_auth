@@ -1,5 +1,20 @@
 module ActionAuth
   class Configuration
+    OAUTH_PROVIDER_LABELS = {
+      "facebook" => "Facebook",
+      "github" => "GitHub",
+      "google_oauth2" => "Google",
+      "twitter" => "Twitter",
+      "twitter2" => "X"
+    }.freeze
+
+    # One OmniAuth strategy and the arguments to start it with. The key is what
+    # OmniAuth calls it, and appears in its paths: auth/:key and auth/:key/callback.
+    OauthProvider = Struct.new(:strategy, :args, :options, :label) do
+      def key
+        (options[:name] || strategy).to_s
+      end
+    end
 
     attr_accessor :allow_user_deletion
     attr_accessor :default_from_email
@@ -14,6 +29,23 @@ module ActionAuth
     attr_accessor :webauthn_rp_name
     attr_accessor :password_complexity_check
     attr_accessor :session_timeout
+
+    # Temporarily stops password and SMS code sign in after too many failures in a
+    # row. A nil duration keeps the account locked until it's unlocked or the
+    # password is reset.
+    attr_accessor :account_lockout_enabled
+    attr_accessor :account_lockout_max_attempts
+    attr_accessor :account_lockout_duration
+
+    # Lets your app block an account from signing in at all, with
+    # user.suspend_account!. ActionAuth never suspends anyone by itself.
+    attr_accessor :account_suspension_enabled
+
+    # Sign in through other sites. Needs the omniauth gem and at least one
+    # config.oauth_provider. Must be set in an initializer, not in an
+    # after_initialize block, because the routes depend on it.
+    attr_accessor :oauth_enabled
+    attr_reader :oauth_providers
 
     attr_accessor :insert_cookie_domain
 
@@ -47,6 +79,14 @@ module ActionAuth
       @webauthn_origin = Rails.env.production? ? "https://#{ENV['HOST']}" : "http://localhost:3000"
       @webauthn_rp_name = Rails.application.class.to_s.deconstantize
       @session_timeout = 2.weeks
+
+      @account_lockout_enabled = true
+      @account_lockout_max_attempts = 10
+      @account_lockout_duration = 30.minutes
+      @account_suspension_enabled = true
+
+      @oauth_enabled = defined?(OmniAuth)
+      @oauth_providers = []
 
       @insert_cookie_domain = false
 
@@ -88,6 +128,35 @@ module ActionAuth
 
     def password_complexity_check?
       @password_complexity_check == true
+    end
+
+    def account_lockout_enabled?
+      @account_lockout_enabled == true
+    end
+
+    def account_suspension_enabled?
+      @account_suspension_enabled == true
+    end
+
+    # Adds a provider. Takes the same arguments as OmniAuth's provider method,
+    # plus an optional label for the buttons:
+    #
+    #   config.oauth_provider :github, ENV["GITHUB_ID"], ENV["GITHUB_SECRET"], scope: "user:email"
+    def oauth_provider(strategy, *args, label: nil, **options)
+      provider = OauthProvider.new(strategy, args, options)
+      provider.label = label || OAUTH_PROVIDER_LABELS.fetch(provider.key) { provider.key.titleize }
+
+      @oauth_providers.reject! { |existing| existing.key == provider.key }
+      @oauth_providers << provider
+    end
+
+    # Having the gem isn't enough, since an app may use OmniAuth for something of
+    # its own. It takes a provider added here for ActionAuth to get involved.
+    def oauth_enabled?
+      return false unless defined?(OmniAuth)
+      return false if @oauth_providers.empty?
+
+      @oauth_enabled.respond_to?(:call) ? @oauth_enabled.call : @oauth_enabled
     end
 
   end

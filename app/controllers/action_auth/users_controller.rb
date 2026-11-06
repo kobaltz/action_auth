@@ -17,7 +17,7 @@ module ActionAuth
       if Current.user.password_usable?
         return refuse("Your account wasn't deleted because the password was missing or incorrect.") unless password_confirmed?
       else
-        return refuse("Please sign in again with a new SMS code, then delete your account within 10 minutes.") unless recently_signed_in?
+        return refuse("Please sign in again with #{Current.user.fresh_sign_in_method}, then delete your account within 10 minutes.") unless recently_signed_in?
       end
 
       Current.user.destroy
@@ -31,7 +31,7 @@ module ActionAuth
       Current.user.authenticate(string_param(:password_challenge))
     end
 
-    # A new SMS code proves the same thing a password would. This uses created_at
+    # A new SMS code or provider sign in proves the same thing a password would. This uses created_at
     # because updated_at keeps moving while the session is being used.
     def recently_signed_in?
       Current.session.created_at > RECENT_SIGN_IN.ago

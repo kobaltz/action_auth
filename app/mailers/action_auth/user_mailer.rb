@@ -20,5 +20,12 @@ module ActionAuth
 
       mail to: @user.email, subject: "Sign in to your account"
     end
+
+    def account_locked
+      @user = params[:user]
+      @duration = ActionAuth.configuration.account_lockout_duration
+
+      mail to: @user.email, subject: "Your account has been locked"
+    end
   end
 end

@@ -33,6 +33,17 @@ class HostParentControllerCheck < ActionDispatch::IntegrationTest
     end
   end
 
+  test "coming back from an OAuth provider works while signed out" do
+    OmniAuth.config.mock_auth[:developer] = OmniAuth::AuthHash.new(provider: "developer", uid: "1", info: { email: "new@example.com" })
+
+    post action_auth.oauth_request_path("developer")
+    follow_redirect!
+
+    assert_redirected_to "/"
+    get "/"
+    assert_response :success
+  end
+
   test "screens that need sign in still require it" do
     [action_auth.sessions_path, action_auth.edit_password_path, action_auth.new_webauthn_credential_path].each do |path|
       get path

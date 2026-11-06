@@ -38,10 +38,13 @@ module ActionAuth
       configured || main_app.root_path
     end
 
-    # Every first factor (password, magic link, SMS) ends here, so that an
-    # account with a security key always gets prompted for it.
+    # Every first factor (password, magic link, SMS, OAuth) ends here, so that a
+    # suspended account is always refused, and an account with a security key
+    # always gets prompted for it.
     def complete_sign_in(user, notice:)
-      if user.second_factor_enabled?
+      if user.account_suspended?
+        redirect_to sign_in_path, alert: ACCOUNT_SUSPENDED_MESSAGE, status: :see_other
+      elsif user.second_factor_enabled?
         session[:webauthn_user_id] = user.id
         redirect_to new_webauthn_credential_authentications_path
       else
@@ -52,8 +55,25 @@ module ActionAuth
 
     def start_session_for(user)
       user.sessions.create!.tap do |user_session|
+        user.unlock_account!
         cookies.signed.permanent[:session_token] = action_auth_session_cookie_options.merge(value: user_session.id)
       end
+    end
+
+    def record_failed_sign_in(user)
+      return unless user&.register_failed_sign_in
+
+      Rails.logger.warn "ActionAuth locked account #{user.id} after too many failed sign ins"
+      send_account_locked_email(user)
+    end
+
+    # Lockout is on by default, including for apps that have never had to set up email
+    # or a job queue, and this is the answer to someone's sign in. It can't take that
+    # down with it. A placeholder address has nobody to tell.
+    def send_account_locked_email(user)
+      UserMailer.with(user: user).account_locked.deliver_later if user.password_usable?
+    rescue StandardError => e
+      Rails.logger.error "ActionAuth could not send the account locked email: #{e.class}: #{e.message}"
     end
 
     # Checks the assertion the browser posted against one of +credentials+ and

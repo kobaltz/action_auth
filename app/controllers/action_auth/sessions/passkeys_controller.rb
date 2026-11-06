@@ -18,7 +18,9 @@ module ActionAuth
       def create
         credential = verify_webauthn_assertion(WebauthnCredential, user_verification: true)
 
-        if credential&.user
+        if credential&.user&.account_suspended?
+          render json: ACCOUNT_SUSPENDED_MESSAGE, status: :unprocessable_entity
+        elsif credential&.user
           start_session_for(credential.user)
           render json: { status: "ok", redirect_url: after_sign_in_path }
         else

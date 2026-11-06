@@ -32,7 +32,7 @@ module ActionAuth
     end
 
     def ensure_login_initiated
-      return if user
+      return if user && !user.account_suspended?
       redirect_to sign_in_path
     end
 

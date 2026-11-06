@@ -11,6 +11,10 @@ ActionAuth.configure do |config|
   config.webauthn_rp_name = Rails.application.class.to_s.deconstantize
   config.insert_cookie_domain = false
 
+  # OmniAuth's built in form, which needs no provider to talk to.
+  config.oauth_provider :developer, label: "Developer"
+  config.oauth_provider :developer, name: "other", label: "Other"
+
   # test/support/host_parent_controller_check.rb runs the app in this mode.
   if ENV["ACTION_AUTH_HOST_PARENT_CONTROLLER"].present?
     config.parent_controller = "ApplicationController"

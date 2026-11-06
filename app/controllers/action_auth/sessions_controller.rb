@@ -16,14 +16,21 @@ module ActionAuth
     def new
     end
 
+    # A locked account gets the same answer whether or not the password is right.
+    # Saying "locked" only to the right password would let guessing carry on through
+    # the lock, and saying it to anyone would reveal who has an account. The account's
+    # owner finds out by email instead.
     def create
       user = User.authenticate_by(email: string_param(:email), password: string_param(:password))
 
-      if user
+      if user && !user.account_locked?
         return if check_if_email_is_verified(user)
 
         complete_sign_in(user, notice: "Signed in successfully")
       else
+        # An empty form isn't a guess.
+        record_failed_sign_in(user || User.find_by(email: string_param(:email))) if string_param(:password).present?
+
         redirect_to sign_in_path(email_hint: string_param(:email)), alert: "That email or password is incorrect"
       end
     end

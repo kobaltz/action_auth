@@ -26,6 +26,18 @@ module ActionAuth
       links.reject { |_label, path| current_page?(path) }
     end
 
+    # The configured OAuth providers, as [label, path] pairs. These have to be POSTed
+    # by a form that Turbo stays out of, because the response redirects to another site:
+    #
+    #   <% action_auth_oauth_providers.each do |label, path| %>
+    #     <%= button_to "Continue with #{label}", path, form: { data: { turbo: false } } %>
+    #   <% end %>
+    def action_auth_oauth_providers
+      return [] unless ActionAuth.configuration.oauth_enabled?
+
+      ActionAuth.configuration.oauth_providers.map { |oauth| [oauth.label, oauth_request_path(oauth.key)] }
+    end
+
     # Everything the browser side of WebAuthn needs. The three screens that use
     # it include this themselves, so they work inside any layout, and the
     # third-party scripts it loads stay off the pages where people type passwords.
